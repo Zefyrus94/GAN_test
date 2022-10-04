@@ -441,7 +441,7 @@ def main(ctx, outdir, net):
     if net == 'cgan':
         #dataset = MNIST('.', download=False, transform=transform)
         from torchvision.datasets import CIFAR10
-        dataset = CIFAR10('.', download=False, transform=transform)
+        dataset = CIFAR10('.', download=True, transform=transform)
     else:
         #print("isdir",os.path.isdir("Downloads/datasets/reduced_celeba/reduced_celeba"))
         dataset = CelebACustom(download=False,transform=transform)

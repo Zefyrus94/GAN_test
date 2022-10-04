@@ -161,7 +161,7 @@ def show_tensor_images(net, image_tensor, num_images=25, size=(image_channels, i
             'gen_optimizer_state_dict': gen_opt.state_dict(),
             'disc_optimizer_state_dict': disc_opt.state_dict(),
             }, f"{ckpt_path}{net}.pkl")
-        epoch_num_history = math.floor(epoch_num/8)
+        epoch_num_history = math.floor(epoch_num/5)#ogni 5 epoche checkpoint storico
         print("salvo storia per intervallo epoche ",epoch_num_history)
         torch.save({
             'epoch': epoch_num,
@@ -423,7 +423,7 @@ def main(ctx, outdir, net):
     global image_width, image_height, n_classes, data_shape#per cifar-10 3x32x32
     global dataloader
     global lr
-
+    global start_epoch
     data_shape = (3, 64, 64)#3,32,32
     dataset = None
     t_image_width = 64
@@ -441,7 +441,7 @@ def main(ctx, outdir, net):
     if net == 'cgan':
         #dataset = MNIST('.', download=False, transform=transform)
         from torchvision.datasets import CIFAR10
-        dataset = CIFAR10('.', download=False, transform=transform)
+        dataset = CIFAR10('.', download=True, transform=transform)
     else:
         #print("isdir",os.path.isdir("Downloads/datasets/reduced_celeba/reduced_celeba"))
         dataset = CelebACustom(download=False,transform=transform)

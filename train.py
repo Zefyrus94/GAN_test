@@ -161,7 +161,7 @@ def show_tensor_images(net, image_tensor, num_images=25, size=(image_channels, i
             'gen_optimizer_state_dict': gen_opt.state_dict(),
             'disc_optimizer_state_dict': disc_opt.state_dict(),
             }, f"{ckpt_path}{net}.pkl")
-        epoch_num_history = math.floor(epoch_num/8)
+        epoch_num_history = math.floor(epoch_num/5)#ogni 5 epoche checkpoint storico
         print("salvo storia per intervallo epoche ",epoch_num_history)
         torch.save({
             'epoch': epoch_num,

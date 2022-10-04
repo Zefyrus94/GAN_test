@@ -423,7 +423,7 @@ def main(ctx, outdir, net):
     global image_width, image_height, n_classes, data_shape#per cifar-10 3x32x32
     global dataloader
     global lr
-
+    global start_epoch
     data_shape = (3, 64, 64)#3,32,32
     dataset = None
     t_image_width = 64

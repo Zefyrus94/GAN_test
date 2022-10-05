@@ -362,7 +362,9 @@ def get_fid(net):
         shuffle=True)
 
     cur_samples = 0
+    print("Recupero il modello InceptionV3...")
     inception_model = get_inception_model()
+    print("Valutazione in corso...")
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
         try:
             for real_example, _ in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
@@ -534,7 +536,7 @@ def main(ctx, outdir, net):
         summary(disc, (disc_input_dim,image_width,image_height))  
     #exit("fine...")
     preload_model = len(os.listdir(history_path)) >= 1#ckpt_path
-    print("preload_model",preload_model,"history_path",os.listdir(history_path))
+    print("preload_model",preload_model)#,"history_path",os.listdir(history_path)
     #return
     # You initialize the weights to the normal distribution
     # with mean 0 and standard deviation 0.02
@@ -575,12 +577,12 @@ def main(ctx, outdir, net):
     show_tensor_images(net, fake)
     """
     ##
-    #train(net)
+    train(net)
     #exit()
-    #print("Generazione gif...")
-    #generate_gif()
-    #print("Ottengo la fid...")
-    #print("Questa operazione potrebbe richiedere qualche minuto")  
+    print("Generazione gif...")
+    generate_gif()
+    print("Ottengo la fid...")
+    print("Questa operazione potrebbe richiedere qualche minuto")  
     get_fid(net)
 
     

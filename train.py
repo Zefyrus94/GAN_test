@@ -35,6 +35,8 @@ import click
 import torch.nn.functional as F
 #
 from importlib import import_module#dynamic import
+#unzip
+import zipfile
 #
 n_classes = 10#per cgan CIFAR-10, MNIST
 data_shape = (1, 28, 28)#per cgan CIFAR-10, MNIST
@@ -312,7 +314,12 @@ def preprocess(img):
     return img
 
 def get_inception_model():
+    #inception_v3_google-1a9a5a14.pth
+    inception_zip_path = "inception_v3_google-1a9a5a14.zip"
+    with zipfile.ZipFile(inception_zip_path, 'r') as zip_ref:
+        zip_ref.extractall('.')
     inception_path = "inception_v3_google-1a9a5a14.pth"
+    #exit("prova unzip")
     inception_model = inception_v3(pretrained=False)
     inception_model.load_state_dict(torch.load(inception_path))
     inception_model.to(device)
@@ -568,12 +575,12 @@ def main(ctx, outdir, net):
     show_tensor_images(net, fake)
     """
     ##
-    train(net)
+    #train(net)
     #exit()
-    print("Generazione gif...")
-    generate_gif()
-    print("Ottengo la fid...")
-    print("Questa operazione potrebbe richiedere qualche minuto")  
+    #print("Generazione gif...")
+    #generate_gif()
+    #print("Ottengo la fid...")
+    #print("Questa operazione potrebbe richiedere qualche minuto")  
     get_fid(net)
 
     

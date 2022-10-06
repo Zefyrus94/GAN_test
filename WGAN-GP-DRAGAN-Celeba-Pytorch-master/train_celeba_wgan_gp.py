@@ -56,7 +56,7 @@ transform = transforms.Compose(
      transforms.ToTensor(),
      transforms.Normalize(mean=[0.5] * 3, std=[0.5] * 3)])
 
-imagenet_data = dsets.ImageFolder('./data/img_align_celeba', transform=transform)
+imagenet_data = dsets.ImageFolder('./data', transform=transform)#./data/img_align_celeba
 data_loader = torch.utils.data.DataLoader(imagenet_data,
                                           batch_size=batch_size,
                                           shuffle=True,

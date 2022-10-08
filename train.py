@@ -323,7 +323,7 @@ def get_inception_model():
     inception_model = inception_v3(pretrained=False)
     inception_model.load_state_dict(torch.load(inception_path))
     inception_model.to(device)
-    inception_model = inception_model.eval()
+    inception_model = inception_model.eval()#for inference
     inception_model.fc = torch.nn.Identity()
     return inception_model
 
@@ -352,7 +352,7 @@ def get_fid(net):
     fake_features_list = []
     real_features_list = []
 
-    gen.eval()
+    gen.eval()#for inference
     n_samples = 512 # The total number of samples
     batch_size = 4 # Samples per iteration
 
@@ -546,10 +546,10 @@ def main(ctx, outdir, net):
         checkpoint = torch.load(f"{ckpt_path}{net}.pkl")
         gen.load_state_dict(checkpoint['gen_state_dict'])
         gen_opt.load_state_dict(checkpoint['gen_optimizer_state_dict'])
-        gen.eval()
+        gen.train()#batch norm e dropout eventuali in training mode
         disc.load_state_dict(checkpoint['disc_state_dict'])
         disc_opt.load_state_dict(checkpoint['disc_optimizer_state_dict'])
-        disc.eval()
+        disc.train()#batch norm e dropout eventuali in training mode
         start_epoch = checkpoint['epoch']
         print("start epoch",start_epoch,"type",type(start_epoch))
     else:

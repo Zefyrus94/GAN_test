@@ -376,13 +376,14 @@ def get_fid(net):
         try:
             for real_example, _ in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
                 #!nvidia-smi
+                print("real...")
                 cur_batch_size = len(real_example)
                 real_samples = real_example
                 real_features = inception_model(real_samples.to(device)).detach().to('cpu') # Move features to CPU
                 real_features_list.append(real_features)
                 #print("len real_example",len(real_example))
                 #print("z_dim",z_dim)
-                
+                print("fake...")
                 fake_samples = get_noise(len(real_example), z_dim).to(device)
                 #print("shape fake_samples",fake_samples.shape)
                 fake_samples = gen(fake_samples)
@@ -400,7 +401,7 @@ def get_fid(net):
                     break
         except Exception as e:
             print(e)
-            print("Error in loop")
+            exit("Error in loop")
 
     #print(fake_features_list)
     fake_features_all = torch.cat(fake_features_list)
@@ -433,6 +434,7 @@ def get_fid(net):
 # General options.
 @click.option('--outdir', help='Dove salvare i risultati', required=True, metavar='DIR')
 @click.option('--net', help='La tipologia di GAN da addestrare', type=click.Choice(['gan','dcgan', 'wgan', 'cgan','cyclegan', 'progan', 'sga2']))
+@click.option('--fid', help='La tipologia di GAN da addestrare', type=bool, metavar='BOOL')
 def main(ctx, outdir, net):
     global gen, disc, gen_opt, disc_opt, criterion
     global image_path, ckpt_path, history_path, gif_path
@@ -584,13 +586,18 @@ def main(ctx, outdir, net):
     show_tensor_images(net, fake)
     """
     ##
-    train(net)
-    #exit()
-    print("Generazione gif...")
-    generate_gif()
-    print("Ottengo la fid...")
-    print("Questa operazione potrebbe richiedere qualche minuto")  
-    get_fid(net)
+    if fid:
+        print("Ottengo la fid...")
+        print("Questa operazione potrebbe richiedere qualche minuto")
+        get_fid(net)
+    else:
+        train(net)
+        #exit()
+        print("Generazione gif...")
+        generate_gif()
+        print("Ottengo la fid...")
+        print("Questa operazione potrebbe richiedere qualche minuto")  
+        get_fid(net)
 
     
 if __name__ == "__main__":

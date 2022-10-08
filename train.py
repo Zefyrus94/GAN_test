@@ -374,7 +374,7 @@ def get_fid(net):
     print("Valutazione in corso...")
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
         try:
-            for real_example, label in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
+            for real_example, labels in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
                 #!nvidia-smi
                 print("real...")
                 cur_batch_size = len(real_example)

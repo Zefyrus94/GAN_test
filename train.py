@@ -374,7 +374,7 @@ def get_fid(net):
     print("Valutazione in corso...")
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
         try:
-            for real_example, _ in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
+            for real_example, label in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
                 #!nvidia-smi
                 print("real...")
                 cur_batch_size = len(real_example)
@@ -384,14 +384,19 @@ def get_fid(net):
                 #print("len real_example",len(real_example))
                 #print("z_dim",z_dim)
                 print("fake...")
-                fake_samples = get_noise(len(real_example), z_dim).to(device)
+
+                fake_samples = get_noise(cur_batch_size, z_dim).to(device)
+                if net == 'cgan':
+                    one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
+                    fake_samples = combine_vectors(fake_samples,one_hot_labels)
                 #print("shape fake_samples",fake_samples.shape)
                 fake_samples = gen(fake_samples)
-                #print("generated",fake_samples.shape)
+                print("generated",fake_samples.shape)
                 if net == 'gan':
                     fake_samples = torch.reshape(fake_samples, (batch_size, image_channels, image_width, image_height))
+                print("preprocess fake....")
                 fake_samples = preprocess(fake_samples)
-                #print("shape fake_samples",fake_samples.shape)
+                print("shape fake_samples",fake_samples.shape)
                 fake_features = inception_model(fake_samples.to(device)).detach().to('cpu')
                 #print("shape fake_features",fake_features.shape)
                 fake_features_list.append(fake_features)

@@ -346,7 +346,14 @@ def get_fid(net):
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
-    dataset = CelebACustom(download=False,transform=transform)
+    if net == 'cgan':
+        #dataset = MNIST('.', download=False, transform=transform)
+        from torchvision.datasets import CIFAR10
+        dataset = CIFAR10('.', download=True, transform=transform)
+    else:
+        #print("isdir",os.path.isdir("Downloads/datasets/reduced_celeba/reduced_celeba"))
+        dataset = CelebACustom(download=False,transform=transform)
+    #dataset = CelebACustom(download=False,transform=transform)
     dataset.__len__()
 
     fake_features_list = []

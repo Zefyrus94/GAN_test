@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+scikit-learn
+tensorflow==2.9.2
+ipython
+imageio
+git+https://github.com/tensorflow/docs

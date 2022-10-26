@@ -35,6 +35,8 @@ import click
 import torch.nn.functional as F
 #
 from importlib import import_module#dynamic import
+#unzip
+import zipfile
 #
 n_classes = 10#per cgan CIFAR-10, MNIST
 data_shape = (1, 28, 28)#per cgan CIFAR-10, MNIST
@@ -312,11 +314,16 @@ def preprocess(img):
     return img
 
 def get_inception_model():
+    #inception_v3_google-1a9a5a14.pth
+    inception_zip_path = "inception_v3_google-1a9a5a14.zip"
+    with zipfile.ZipFile(inception_zip_path, 'r') as zip_ref:
+        zip_ref.extractall('.')
     inception_path = "inception_v3_google-1a9a5a14.pth"
+    #exit("prova unzip")
     inception_model = inception_v3(pretrained=False)
     inception_model.load_state_dict(torch.load(inception_path))
     inception_model.to(device)
-    inception_model = inception_model.eval()
+    inception_model = inception_model.eval()#for inference
     inception_model.fc = torch.nn.Identity()
     return inception_model
 
@@ -339,13 +346,20 @@ def get_fid(net):
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
-    dataset = CelebACustom(download=False,transform=transform)
+    if net == 'cgan':
+        #dataset = MNIST('.', download=False, transform=transform)
+        from torchvision.datasets import CIFAR10
+        dataset = CIFAR10('.', download=True, transform=transform)
+    else:
+        #print("isdir",os.path.isdir("Downloads/datasets/reduced_celeba/reduced_celeba"))
+        dataset = CelebACustom(download=False,transform=transform)
+    #dataset = CelebACustom(download=False,transform=transform)
     dataset.__len__()
 
     fake_features_list = []
     real_features_list = []
 
-    gen.eval()
+    gen.eval()#for inference
     n_samples = 512 # The total number of samples
     batch_size = 4 # Samples per iteration
 
@@ -355,26 +369,34 @@ def get_fid(net):
         shuffle=True)
 
     cur_samples = 0
+    print("Recupero il modello InceptionV3...")
     inception_model = get_inception_model()
+    print("Valutazione in corso...")
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
         try:
-            for real_example, _ in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
+            for real_example, labels in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
                 #!nvidia-smi
+                print("real...")
                 cur_batch_size = len(real_example)
                 real_samples = real_example
                 real_features = inception_model(real_samples.to(device)).detach().to('cpu') # Move features to CPU
                 real_features_list.append(real_features)
                 #print("len real_example",len(real_example))
                 #print("z_dim",z_dim)
-                
-                fake_samples = get_noise(len(real_example), z_dim).to(device)
+                print("fake...")
+
+                fake_samples = get_noise(cur_batch_size, z_dim).to(device)
+                if net == 'cgan':
+                    one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
+                    fake_samples = combine_vectors(fake_samples,one_hot_labels)
                 #print("shape fake_samples",fake_samples.shape)
                 fake_samples = gen(fake_samples)
-                #print("generated",fake_samples.shape)
+                print("generated",fake_samples.shape)
                 if net == 'gan':
                     fake_samples = torch.reshape(fake_samples, (batch_size, image_channels, image_width, image_height))
+                print("preprocess fake....")
                 fake_samples = preprocess(fake_samples)
-                #print("shape fake_samples",fake_samples.shape)
+                print("shape fake_samples",fake_samples.shape)
                 fake_features = inception_model(fake_samples.to(device)).detach().to('cpu')
                 #print("shape fake_features",fake_features.shape)
                 fake_features_list.append(fake_features)
@@ -384,7 +406,7 @@ def get_fid(net):
                     break
         except Exception as e:
             print(e)
-            print("Error in loop")
+            exit("Error in loop")
 
     #print(fake_features_list)
     fake_features_all = torch.cat(fake_features_list)
@@ -417,7 +439,8 @@ def get_fid(net):
 # General options.
 @click.option('--outdir', help='Dove salvare i risultati', required=True, metavar='DIR')
 @click.option('--net', help='La tipologia di GAN da addestrare', type=click.Choice(['gan','dcgan', 'wgan', 'cgan','cyclegan', 'progan', 'sga2']))
-def main(ctx, outdir, net):
+@click.option('--fid', help='La tipologia di GAN da addestrare', type=bool, metavar='BOOL')
+def main(ctx, outdir, net, fid):
     global gen, disc, gen_opt, disc_opt, criterion
     global image_path, ckpt_path, history_path, gif_path
     global image_width, image_height, n_classes, data_shape#per cifar-10 3x32x32
@@ -527,7 +550,7 @@ def main(ctx, outdir, net):
         summary(disc, (disc_input_dim,image_width,image_height))  
     #exit("fine...")
     preload_model = len(os.listdir(history_path)) >= 1#ckpt_path
-    print("preload_model",preload_model,"history_path",os.listdir(history_path))
+    print("preload_model",preload_model)#,"history_path",os.listdir(history_path)
     #return
     # You initialize the weights to the normal distribution
     # with mean 0 and standard deviation 0.02
@@ -537,10 +560,10 @@ def main(ctx, outdir, net):
         checkpoint = torch.load(f"{ckpt_path}{net}.pkl")
         gen.load_state_dict(checkpoint['gen_state_dict'])
         gen_opt.load_state_dict(checkpoint['gen_optimizer_state_dict'])
-        gen.eval()
+        gen.train()#batch norm e dropout eventuali in training mode
         disc.load_state_dict(checkpoint['disc_state_dict'])
         disc_opt.load_state_dict(checkpoint['disc_optimizer_state_dict'])
-        disc.eval()
+        disc.train()#batch norm e dropout eventuali in training mode
         start_epoch = checkpoint['epoch']
         print("start epoch",start_epoch,"type",type(start_epoch))
     else:
@@ -568,13 +591,18 @@ def main(ctx, outdir, net):
     show_tensor_images(net, fake)
     """
     ##
-    train(net)
-    #exit()
-    print("Generazione gif...")
-    generate_gif()
-    print("Ottengo la fid...")
-    print("Questa operazione potrebbe richiedere qualche minuto")  
-    get_fid(net)
+    if fid:
+        print("Ottengo la fid...")
+        print("Questa operazione potrebbe richiedere qualche minuto")
+        get_fid(net)
+    else:
+        train(net)
+        #exit()
+        print("Generazione gif...")
+        generate_gif()
+        print("Ottengo la fid...")
+        print("Questa operazione potrebbe richiedere qualche minuto")  
+        get_fid(net)
 
     
 if __name__ == "__main__":

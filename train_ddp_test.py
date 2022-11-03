@@ -66,7 +66,7 @@ dataloader = None
 def create_data_loader_cifar10():
     transform = transforms.Compose(
         [
-        transforms.RandomCrop(32),
+        transforms.RandomCrop(64),#32
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])

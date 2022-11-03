@@ -349,7 +349,7 @@ if __name__ == '__main__':
     disc = disc.apply(weights_init)
     start_train = time.time()
     cur_step = 0
-	generator_losses = []
+    generator_losses = []
 	discriminator_losses = []
 
 	#UNIT TEST NOTE: Initializations needed for grading

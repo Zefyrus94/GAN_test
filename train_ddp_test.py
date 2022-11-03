@@ -128,6 +128,10 @@ def get_input_dimensions(z_dim, data_shape, n_classes):
 #
 def train(gen, disc, trainloader):
     print("Start training...")
+    cur_step = 0
+    save_step = 0
+    mean_generator_loss = 0
+    mean_discriminator_loss = 0
     criterion = nn.BCEWithLogitsLoss()
     gen_input_dim = z_dim
     disc_input_dim = image_channels

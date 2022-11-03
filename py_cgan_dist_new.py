@@ -336,8 +336,8 @@ def init_distributed():
 if __name__ == '__main__':
     start = time.time()
     init_distributed()
-    PATH_D = './mnist_disc.pth'
-    PATH_G = './mnist_gen.pth'
+    PATH_D = './mnist_disc_dist.pth'
+    PATH_G = './mnist_gen_dist.pth'
     dataloader = create_data_loader_mnist()
     generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
     gen = Generator(input_dim=generator_input_dim).to(device)

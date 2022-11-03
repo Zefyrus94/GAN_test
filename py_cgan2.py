@@ -390,8 +390,8 @@ if __name__ == '__main__':
     #disc = nn.SyncBatchNorm.convert_sync_batchnorm(disc)
     local_rank = int(os.environ['LOCAL_RANK'])
     #net = nn.parallel.DistributedDataParallel(net, device_ids=[local_rank])
-    gen = nn.parallel.DistributedDataParallel(gen, device_ids=[local_rank])
-    disc = nn.parallel.DistributedDataParallel(disc, device_ids=[local_rank])
+    #gen = nn.parallel.DistributedDataParallel(gen, device_ids=[local_rank])
+    #disc = nn.parallel.DistributedDataParallel(disc, device_ids=[local_rank])
     #
     start_train = time.time()
     train(gen, disc, dataloader)

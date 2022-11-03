@@ -366,8 +366,8 @@ disc_real_pred = False
 if __name__ == '__main__':
     start = time.time()
     init_distributed()
-    PATH_D = './mnist_disc.pth'
-    PATH_G = './mnist_gen.pth'
+    PATH_D = './mnist_disc_dist.pth'
+    PATH_G = './mnist_gen_dist.pth'
     dataloader = create_data_loader_mnist()
     gen = Generator(input_dim=generator_input_dim).to(device)#n
     disc = Discriminator(im_chan=discriminator_im_chan).to(device)#n

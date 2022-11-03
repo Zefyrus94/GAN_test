@@ -159,7 +159,7 @@ mnist_shape = (1, 28, 28)
 n_classes = 10
 
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 2#00
+n_epochs = 10#200
 z_dim = 64
 display_step = 500
 batch_size = 128

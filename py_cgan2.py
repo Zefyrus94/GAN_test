@@ -383,7 +383,6 @@ if __name__ == '__main__':
     summary(gen, (generator_input_dim,))
     print("Architettura Discriminatore")
     summary(disc, (discriminator_im_chan,28,28)) 
-    exit()
     #
     start_train = time.time()
     train(gen, disc, dataloader)

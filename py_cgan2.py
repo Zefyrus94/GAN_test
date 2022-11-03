@@ -197,6 +197,11 @@ def weights_init(m):
         torch.nn.init.constant_(m.bias, 0)
 ##train
 def train(gen, disc, dataloader):
+    print("training...")
+    print("Architettura Generatore")
+    summary(gen, (generator_input_dim,))
+    print("Architettura Discriminatore")
+    summary(disc, (discriminator_im_chan,28,28)) 
     cur_step = 0
     generator_losses = []
     discriminator_losses = []
@@ -379,10 +384,7 @@ if __name__ == '__main__':
     #provo qui
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
-    print("Architettura Generatore")
-    summary(gen, (generator_input_dim,))
-    print("Architettura Discriminatore")
-    summary(disc, (discriminator_im_chan,28,28)) 
+    
     #
     start_train = time.time()
     train(gen, disc, dataloader)

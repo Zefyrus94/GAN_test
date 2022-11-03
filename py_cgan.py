@@ -309,11 +309,11 @@ for epoch in range(n_epochs):
         # Keep track of the generator losses
         generator_losses += [gen_loss.item()]
         #
-        """
         if cur_step % display_step == 0 and cur_step > 0:
             gen_mean = sum(generator_losses[-display_step:]) / display_step
             disc_mean = sum(discriminator_losses[-display_step:]) / display_step
             print(f"Step {cur_step}: Generator loss: {gen_mean}, discriminator loss: {disc_mean}")
+            """
             show_tensor_images(fake)
             show_tensor_images(real)
             step_bins = 20
@@ -331,7 +331,8 @@ for epoch in range(n_epochs):
             )
             plt.legend()
             plt.show()
+            """
         elif cur_step == 0:
             print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
         cur_step += 1
-        """
+        

@@ -35,7 +35,7 @@ from utils import setup_for_distributed, save_on_master, is_main_process
 gpu_list = "0,1,2,3"
 os.environ['CUDA_VISIBLE_DEVICES'] = gpu_list
 n_classes = 10
-data_shape = (1, 28, 28)
+data_shape = (3, 64, 64)#(1, 28, 28)
 image_width = 64
 image_height = 64
 image_size = 299

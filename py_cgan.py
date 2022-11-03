@@ -346,5 +346,18 @@ def train(gen,disc,dataloader):
 	        elif cur_step == 0:
 	            print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
 	        cur_step += 1
+start = time.time()
+PATH_D = './mnist_disc.pth'
+PATH_G = './mnist_gen.pth'
 dataloader = create_data_loader_mnist()
-train(gen,disc,dataloader)
+start_train = time.time()
+train(gen, disc, dataloader)
+end_train = time.time()
+# save
+torch.save(gen.state_dict(), PATH_G)
+torch.save(disc.state_dict(), PATH_D)
+end = time.time()
+seconds = (end - start)
+seconds_train = (end_train - start_train)
+print(f"Total elapsed time: {seconds:.2f} seconds, \
+ Train {n_epochs} epochs {seconds_train:.2f} seconds") 

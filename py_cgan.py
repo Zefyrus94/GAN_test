@@ -203,7 +203,7 @@ def create_data_loader_mnist():
     #batch_size = 256
     mnist_data = MNIST(root='./data', download=True, transform=transform)
     #num_workers=16, pin_memory=True
-    dataloader = DataLoader(mnist_data, batch_size=batch_size)
+    dataloader = DataLoader(mnist_data, batch_size=batch_size,shuffle=True,num_workers=16)
     return dataloader
 generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
 

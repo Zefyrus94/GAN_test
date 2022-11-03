@@ -132,11 +132,12 @@ def train(gen, disc, trainloader):
     #summary(gen, insize_g)
     #print("gen_input_dim",gen_input_dim)
     summary(gen, (gen_input_dim,))
-    """
+    
     print("Architettura Discriminatore")
     #print("disc_input_dim",disc_input_dim)
     #summary(disc, insize_d)
     summary(disc, (disc_input_dim,image_width,image_height))  
+    """
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
     epochs = 1

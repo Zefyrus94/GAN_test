@@ -392,4 +392,4 @@ if __name__ == '__main__':
     seconds = (end - start)
     seconds_train = (end_train - start_train)
     print(f"Total elapsed time: {seconds:.2f} seconds, \
-     Train 1 epoch {seconds_train:.2f} seconds")
+     Train {n_epochs} epoch {seconds_train:.2f} seconds")

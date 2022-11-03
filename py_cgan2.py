@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 #distribution
+import os
 import torch.distributed as dist
 import time
 from utils import setup_for_distributed, save_on_master, is_main_process

@@ -137,7 +137,7 @@ def train(gen, disc, trainloader):
     #print("disc_input_dim",disc_input_dim)
     #summary(disc, insize_d)
     summary(disc, (disc_input_dim,image_width,image_height))  
-    """
+    
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
     epochs = 1
@@ -214,7 +214,6 @@ def train(gen, disc, trainloader):
             # print statistics
             #running_loss += loss.item()
         print(f'[Epoch {epoch + 1}/{epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
-    """
     print('Finished Training')
 
 def init_distributed():

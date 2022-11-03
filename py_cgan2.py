@@ -345,8 +345,8 @@ gen = Generator(input_dim=generator_input_dim).to(device)
 gen_opt = torch.optim.Adam(gen.parameters(), lr=lr)
 disc = Discriminator(im_chan=discriminator_im_chan).to(device)
 disc_opt = torch.optim.Adam(disc.parameters(), lr=lr)
-gen = gen.apply(weights_init)
-disc = disc.apply(weights_init)
+#gen = gen.apply(weights_init)
+#disc = disc.apply(weights_init)
 # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED CELL
 
@@ -374,6 +374,9 @@ if __name__ == '__main__':
     #net = nn.parallel.DistributedDataParallel(net, device_ids=[local_rank])
     gen = nn.parallel.DistributedDataParallel(gen, device_ids=[local_rank])
     disc = nn.parallel.DistributedDataParallel(disc, device_ids=[local_rank])
+    #provo qui
+    gen = gen.apply(weights_init)
+    disc = disc.apply(weights_init)
     start_train = time.time()
     train(gen, disc, dataloader)
     end_train = time.time()

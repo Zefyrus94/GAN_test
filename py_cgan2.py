@@ -371,17 +371,6 @@ if __name__ == '__main__':
     PATH_D = './mnist_disc.pth'
     PATH_G = './mnist_gen.pth'
     dataloader = create_data_loader_mnist()
-    gen = gen.cuda()
-    disc = disc.cuda()
-    ## Convert BatchNorm to SyncBatchNorm.
-    #net = nn.SyncBatchNorm.convert_sync_batchnorm(net)
-    gen = nn.SyncBatchNorm.convert_sync_batchnorm(gen)
-    disc = nn.SyncBatchNorm.convert_sync_batchnorm(disc)
-    local_rank = int(os.environ['LOCAL_RANK'])
-    #net = nn.parallel.DistributedDataParallel(net, device_ids=[local_rank])
-    gen = nn.parallel.DistributedDataParallel(gen, device_ids=[local_rank])
-    disc = nn.parallel.DistributedDataParallel(disc, device_ids=[local_rank])
-    #provo qui
     gen = Generator(input_dim=generator_input_dim).to(device)#n
     disc = Discriminator(im_chan=discriminator_im_chan).to(device)#n
     gen = gen.apply(weights_init)

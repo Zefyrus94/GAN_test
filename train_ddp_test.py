@@ -132,6 +132,7 @@ def train(gen, disc, trainloader):
     #summary(gen, insize_g)
     #print("gen_input_dim",gen_input_dim)
     summary(gen, (gen_input_dim,))
+    """
     print("Architettura Discriminatore")
     #print("disc_input_dim",disc_input_dim)
     #summary(disc, insize_d)
@@ -188,32 +189,31 @@ def train(gen, disc, trainloader):
             gen_loss.backward()
             gen_opt.step()
             mean_generator_loss += gen_loss.item() / display_step
-            """
-            if cur_step % display_step == 0 and cur_step > 0:
-                print(f"Epoch {epoch} Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
-                #show_tensor_images(fake,name=epoch,gen=gen,disc=disc)
-                print("plot ",prev_fake.shape)
-                show_tensor_images(net, prev_fake, epoch_num=epoch, gen=gen, disc=disc, gen_opt=gen_opt, disc_opt=disc_opt)
-                save_step += 1
-                show_tensor_images(net, prev_real)
-                mean_generator_loss = 0
-                mean_discriminator_loss = 0
-            """
+            
+            #if cur_step % display_step == 0 and cur_step > 0:
+            #    print(f"Epoch {epoch} Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
+            #    #show_tensor_images(fake,name=epoch,gen=gen,disc=disc)
+            #    print("plot ",prev_fake.shape)
+            #    show_tensor_images(net, prev_fake, epoch_num=epoch, gen=gen, disc=disc, gen_opt=gen_opt, disc_opt=disc_opt)
+            #    save_step += 1
+            #    show_tensor_images(net, prev_real)
+            #    mean_generator_loss = 0
+            #    mean_discriminator_loss = 0
+            
             cur_step += 1 
             ####
-            """
-            optimizer.zero_grad()
+            
+            #optimizer.zero_grad()
             # forward + backward + optimize
-            outputs = net(real)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+            #outputs = net(real)
+            #loss = criterion(outputs, labels)
+            #loss.backward()
+            #optimizer.step()
 
             # print statistics
-            running_loss += loss.item()
-            """
+            #running_loss += loss.item()
         print(f'[Epoch {epoch + 1}/{epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
-    
+    """
     print('Finished Training')
 
 def init_distributed():

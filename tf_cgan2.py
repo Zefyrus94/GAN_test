@@ -257,3 +257,4 @@ for epoch in range(EPOCHS):
   #test_loss.reset_states()
   #train_accuracy.reset_states()
   #test_accuracy.reset_states()
+generator.save("generator")

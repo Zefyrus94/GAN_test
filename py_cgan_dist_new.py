@@ -208,7 +208,7 @@ def create_data_loader_mnist():
     data_sampler = torch.utils.data.distributed.DistributedSampler(dataset=mnist_data, shuffle=True)
     #num_workers=16, pin_memory=True
     dataloader = DataLoader(mnist_data, batch_size=batch_size,
-        sampler=data_sampler,shuffle=True,num_workers=16)
+        sampler=data_sampler,num_workers=16)
     return dataloader
 
 def weights_init(m):

@@ -377,6 +377,12 @@ if __name__ == '__main__':
     #provo qui
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
+    print("Architettura Generatore")
+    summary(gen, (gen_input_dim,))
+    print("Architettura Discriminatore")
+    summary(disc, (disc_input_dim,image_width,image_height)) 
+    exit()
+    #
     start_train = time.time()
     train(gen, disc, dataloader)
     end_train = time.time()

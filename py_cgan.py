@@ -170,9 +170,8 @@ def create_data_loader_mnist():
     ])
     #batch_size = 256
     mnist_data = MNIST(root='./data', download=True, transform=transform)
-    train_sampler = torch.utils.data.distributed.DistributedSampler(dataset=mnist_data, shuffle=True)
     dataloader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size,
-                                            sampler=train_sampler, num_workers=16, pin_memory=True)
+                                            num_workers=16, pin_memory=True)
     return dataloader
 
 # UNQ_C3 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)

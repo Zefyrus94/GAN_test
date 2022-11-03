@@ -233,6 +233,7 @@ def train(gen,disc,dataloader):
     real_image_and_labels = False
     disc_fake_pred = False
     disc_real_pred = False
+    num_of_batches = len(dataloader)
     for epoch in range(n_epochs):
         dataloader.sampler.set_epoch(epoch)
         #c

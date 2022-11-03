@@ -205,12 +205,6 @@ def create_data_loader_mnist():
     #num_workers=16, pin_memory=True
     dataloader = DataLoader(mnist_data, batch_size=batch_size,shuffle=True,num_workers=16)
     return dataloader
-generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
-
-gen = Generator(input_dim=generator_input_dim).to(device)
-gen_opt = torch.optim.Adam(gen.parameters(), lr=lr)
-disc = Discriminator(im_chan=discriminator_im_chan).to(device)
-disc_opt = torch.optim.Adam(disc.parameters(), lr=lr)
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -218,8 +212,6 @@ def weights_init(m):
     if isinstance(m, nn.BatchNorm2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
-gen = gen.apply(weights_init)
-disc = disc.apply(weights_init)
 
 def train(gen,disc,dataloader):
 	# UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
@@ -351,6 +343,13 @@ if __name__ == '__main__':
 	PATH_D = './mnist_disc.pth'
 	PATH_G = './mnist_gen.pth'
 	dataloader = create_data_loader_mnist()
+	generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
+	gen = Generator(input_dim=generator_input_dim).to(device)
+	gen_opt = torch.optim.Adam(gen.parameters(), lr=lr)
+	disc = Discriminator(im_chan=discriminator_im_chan).to(device)
+	disc_opt = torch.optim.Adam(disc.parameters(), lr=lr)
+	gen = gen.apply(weights_init)
+	disc = disc.apply(weights_init)
 	start_train = time.time()
 	train(gen, disc, dataloader)
 	end_train = time.time()

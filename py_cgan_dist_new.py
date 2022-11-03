@@ -235,7 +235,7 @@ def train(gen,disc,dataloader):
         dataloader.sampler.set_epoch(epoch)
         running_loss_d = 0.0
         running_loss_g = 0.0
-	    # Dataloader returns the batches and the labels
+        # Dataloader returns the batches and the labels
 	    for real, labels in tqdm(dataloader):
 	        cur_batch_size = len(real)
 	        # Flatten the batch of real images from the dataset

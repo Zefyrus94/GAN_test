@@ -254,11 +254,14 @@ def train(gen, disc, dataloader):
             disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
             disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
             disc_loss = (disc_fake_loss + disc_real_loss) / 2
-            disc_loss.backward(retain_graph=True)
-            disc_opt.step()
+            #su
             # Keep track of the average discriminator loss
             discriminator_losses += [disc_loss.item()]
             running_loss_d += disc_loss.item()
+            #su>
+            disc_loss.backward(retain_graph=True)
+            disc_opt.step()
+            #::su::
             ### Update generator ###
             # Zero out the generator gradients
             gen_opt.zero_grad()

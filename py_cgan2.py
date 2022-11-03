@@ -246,6 +246,7 @@ def train(gen, disc, dataloader):
                 disc_real_pred = disc(real_image_and_labels)
                 #### END CODE HERE ####
                 # Make sure shapes are correct
+                """
                 assert tuple(fake_image_and_labels.shape) == (len(real), fake.detach().shape[1] + image_one_hot_labels.shape[1], 28 ,28)
                 assert tuple(real_image_and_labels.shape) == (len(real), real.shape[1] + image_one_hot_labels.shape[1], 28 ,28)
                 # Make sure that enough predictions were made
@@ -255,7 +256,7 @@ def train(gen, disc, dataloader):
                 # Shapes must match
                 assert tuple(fake_image_and_labels.shape) == tuple(real_image_and_labels.shape)
                 assert tuple(disc_fake_pred.shape) == tuple(disc_real_pred.shape)
-
+                """
                 disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
                 disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
                 disc_loss = (disc_fake_loss + disc_real_loss) / 2

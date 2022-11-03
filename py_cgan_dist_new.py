@@ -7,6 +7,9 @@ from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import time
+import os
+import torch.distributed as dist
+from utils import setup_for_distributed, save_on_master, is_main_process
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 class Generator(nn.Module):
     '''

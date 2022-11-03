@@ -350,6 +350,10 @@ start = time.time()
 PATH_D = './mnist_disc.pth'
 PATH_G = './mnist_gen.pth'
 dataloader = create_data_loader_mnist()
+gen = Generator(input_dim=generator_input_dim).to(device)#n
+disc = Discriminator(im_chan=discriminator_im_chan).to(device)#n
+gen = gen.apply(weights_init)
+disc = disc.apply(weights_init)
 start_train = time.time()
 train(gen, disc, dataloader)
 end_train = time.time()

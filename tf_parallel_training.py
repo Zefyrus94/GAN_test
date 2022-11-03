@@ -5,15 +5,16 @@
 import tensorflow as tf
 import numpy as np
 import os
-print(tf.version)
 # Note that it generally has a minimum of 8 cores, but if your GPU has
 # less, you need to set this. In this case one of my GPUs has 4 cores
 os.environ["TF_MIN_GPU_MULTIPROCESSOR_COUNT"] = "4"
 
 # If the list of devices is not specified in the
 # `tf.distribute.MirroredStrategy` constructor, it will be auto-detected.
+GPUS = [0, 1, 2, 3]
+devices = ["GPU:" + str(gpu_id) for gpu_id in GPUS]
 # If you have *different* GPUs in your system, you probably have to set up cross_device_ops like this
-strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
+strategy = tf.distribute.MirroredStrategy(devices=devices, cross_device_ops=tf.distribute.HierarchicalCopyAllReduce())
 print ('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
 # Get the data
@@ -147,13 +148,14 @@ for epoch in range(EPOCHS):
   test_loss.reset_states()
   train_accuracy.reset_states()
   test_accuracy.reset_states()
+"""
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+"""

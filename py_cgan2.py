@@ -6,39 +6,8 @@ from torchvision.datasets import MNIST
 from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
-##hyperparameters
-mnist_shape = (1, 28, 28)
-n_classes = 10
-criterion = nn.BCEWithLogitsLoss()
-n_epochs = 200
-z_dim = 64
-display_step = 500
-batch_size = 128
-lr = 0.0002
-device = 'cuda'
-####<dataloader
-#dataloader = create_data_loader_mnist()
-#####>
-generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
-gen = Generator(input_dim=generator_input_dim).to(device)
-gen_opt = torch.optim.Adam(gen.parameters(), lr=lr)
-disc = Discriminator(im_chan=discriminator_im_chan).to(device)
-disc_opt = torch.optim.Adam(disc.parameters(), lr=lr)
-gen = gen.apply(weights_init)
-disc = disc.apply(weights_init)
-# UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
-# GRADED CELL
-cur_step = 0
-generator_losses = []
-discriminator_losses = []
-#UNIT TEST NOTE: Initializations needed for grading
-noise_and_labels = False
-fake = False
-fake_image_and_labels = False
-real_image_and_labels = False
-disc_fake_pred = False
-disc_real_pred = False
 #distribution
 import torch.distributed as dist
 import time
@@ -166,7 +135,7 @@ class Discriminator(nn.Module):
         return disc_pred.view(len(disc_pred), -1)
 # UNQ_C1 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED FUNCTION: get_one_hot_labels
-import torch.nn.functional as F
+
 def get_one_hot_labels(labels, n_classes):
     '''
     Function for creating one-hot vectors for the labels, returns a tensor of shape (?, num_classes).
@@ -347,6 +316,40 @@ def init_distributed():
     # synchronizes all the threads to reach this point before moving on
     dist.barrier()
     setup_for_distributed(rank == 0)
+
+##hyperparameters
+mnist_shape = (1, 28, 28)
+n_classes = 10
+criterion = nn.BCEWithLogitsLoss()
+n_epochs = 200
+z_dim = 64
+display_step = 500
+batch_size = 128
+lr = 0.0002
+device = 'cuda'
+####<dataloader
+#dataloader = create_data_loader_mnist()
+#####>
+generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
+gen = Generator(input_dim=generator_input_dim).to(device)
+gen_opt = torch.optim.Adam(gen.parameters(), lr=lr)
+disc = Discriminator(im_chan=discriminator_im_chan).to(device)
+disc_opt = torch.optim.Adam(disc.parameters(), lr=lr)
+gen = gen.apply(weights_init)
+disc = disc.apply(weights_init)
+# UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
+# GRADED CELL
+cur_step = 0
+generator_losses = []
+discriminator_losses = []
+#UNIT TEST NOTE: Initializations needed for grading
+noise_and_labels = False
+fake = False
+fake_image_and_labels = False
+real_image_and_labels = False
+disc_fake_pred = False
+disc_real_pred = False
+
 if __name__ == '__main__':
     start = time.time()
     init_distributed()

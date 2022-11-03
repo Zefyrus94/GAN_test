@@ -314,7 +314,7 @@ def train(gen, disc, dataloader):
             elif cur_step == 0:
                 print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
             cur_step += 1
-        print(f'[Epoch {epoch + 1}/{epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
+        print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
 ###train>
 def init_distributed():
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs

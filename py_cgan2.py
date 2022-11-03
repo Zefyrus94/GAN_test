@@ -22,7 +22,7 @@ def create_data_loader_mnist():
         transforms.Normalize((0.5,), (0.5,)),
     ])
     #batch_size = 256
-    mnist_data = torchvision.datasets.MNIST(root='./data', download=True, transform=transform)
+    mnist_data = MNIST(root='./data', download=True, transform=transform)
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset=mnist_data, shuffle=True)
     dataloader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size,
                                             sampler=train_sampler, num_workers=16, pin_memory=True)

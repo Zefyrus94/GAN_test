@@ -204,10 +204,6 @@ def create_data_loader_mnist():
     mnist_data = MNIST(root='./data', download=True, transform=transform)
     dataloader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size,
                                             num_workers=16, pin_memory=True)
-    dataloader = DataLoader(
-    MNIST('.', download=True, transform=transform),
-    batch_size=batch_size,
-    shuffle=True)
     return dataloader
 generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
 

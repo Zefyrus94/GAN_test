@@ -202,7 +202,7 @@ def train(gen, disc, dataloader):
         running_loss_g = 0.0
         # Dataloader returns the batches and the labels
         #real, labels in tqdm(dataloader):
-        for i, data in enumerate(trainloader, 0):
+        for i, data in enumerate(dataloader, 0):
             real, labels = data
             cur_batch_size = len(real)
             # Flatten the batch of real images from the dataset

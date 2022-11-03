@@ -384,9 +384,14 @@ if __name__ == '__main__':
     #provo qui
     gen = Generator(input_dim=generator_input_dim).to(device)#n
     disc = Discriminator(im_chan=discriminator_im_chan).to(device)#n
-    gen = gen.apply(weights_init)
-    disc = disc.apply(weights_init)
-    
+    #gen = gen.apply(weights_init)
+    #disc = disc.apply(weights_init)
+    gen = nn.SyncBatchNorm.convert_sync_batchnorm(gen)
+    disc = nn.SyncBatchNorm.convert_sync_batchnorm(disc)
+    local_rank = int(os.environ['LOCAL_RANK'])
+    #net = nn.parallel.DistributedDataParallel(net, device_ids=[local_rank])
+    gen = nn.parallel.DistributedDataParallel(gen, device_ids=[local_rank])
+    disc = nn.parallel.DistributedDataParallel(disc, device_ids=[local_rank])
     #
     start_train = time.time()
     train(gen, disc, dataloader)

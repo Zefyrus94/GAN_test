@@ -382,6 +382,8 @@ if __name__ == '__main__':
     gen = nn.parallel.DistributedDataParallel(gen, device_ids=[local_rank])
     disc = nn.parallel.DistributedDataParallel(disc, device_ids=[local_rank])
     #provo qui
+    gen = Generator(input_dim=generator_input_dim).to(device)#n
+    disc = Discriminator(im_chan=discriminator_im_chan).to(device)#n
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
     

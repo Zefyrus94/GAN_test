@@ -249,11 +249,10 @@ if __name__ == '__main__':
     trainloader = create_data_loader_cifar10()
     #net = torchvision.models.resnet50(False).cuda()
     net = 'cgan'
-    modules = [f"models.{net}.networks.Generator",f"models.{net}.networks.Discriminator"]
-    for module in modules:
-        import_module(module)
-    gen = getattr(import_module(f"models.{net}.networks.Generator"), 'Generator')
-    disc = getattr(import_module(f"models.{net}.networks.Discriminator"), 'Discriminator')
+    from models.cgan.networks.Generator import Generator
+    from models.cgan.networks.Discriminator import Discriminator
+    gen = Generator.Generator
+    disc = Discriminator.Discriminator
     
     ## Convert BatchNorm to SyncBatchNorm. 
     #net = nn.SyncBatchNorm.convert_sync_batchnorm(net)

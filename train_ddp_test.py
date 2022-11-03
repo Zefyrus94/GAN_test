@@ -153,7 +153,7 @@ def train(gen, disc, trainloader):
     
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
-    epochs = 1
+    epochs = 100
     num_of_batches = len(trainloader)
     for epoch in range(start_epoch, epochs):  # loop over the dataset multiple times
         trainloader.sampler.set_epoch(epoch)
@@ -175,7 +175,7 @@ def train(gen, disc, trainloader):
             ####
             disc_opt.zero_grad()
             fake_noise = get_noise(cur_batch_size, z_dim, device=device)
-            print("fake_noise.shape",fake_noise.shape,"one_hot_labels.shape",one_hot_labels.shape)
+            #print("fake_noise.shape",fake_noise.shape,"one_hot_labels.shape",one_hot_labels.shape)
             fake_noise = combine_vectors(fake_noise,one_hot_labels)
             fake = gen(fake_noise)
             #print("fake shape",fake.shape)

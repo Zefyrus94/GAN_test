@@ -221,7 +221,7 @@ def weights_init(m):
 gen = gen.apply(weights_init)
 disc = disc.apply(weights_init)
 
-def train():
+def train(gen,disc,dataloader):
 	# UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 	# GRADED CELL
 	cur_step = 0
@@ -236,7 +236,7 @@ def train():
 	real_image_and_labels = False
 	disc_fake_pred = False
 	disc_real_pred = False
-	dataloader = create_data_loader_mnist()
+	
 	for epoch in range(n_epochs):
 	    # Dataloader returns the batches and the labels
 	    for real, labels in tqdm(dataloader):
@@ -346,4 +346,5 @@ def train():
 	        elif cur_step == 0:
 	            print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
 	        cur_step += 1
-train()
+dataloader = create_data_loader_mnist()
+train(gen,disc,dataloader)

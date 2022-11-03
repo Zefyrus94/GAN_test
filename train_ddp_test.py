@@ -251,8 +251,8 @@ if __name__ == '__main__':
     net = 'cgan'
     from models.cgan.networks.Generator import Generator
     from models.cgan.networks.Discriminator import Discriminator
-    gen = Generator.Generator
-    disc = Discriminator.Discriminator
+    gen = Generator
+    disc = Discriminator
     
     ## Convert BatchNorm to SyncBatchNorm. 
     #net = nn.SyncBatchNorm.convert_sync_batchnorm(net)

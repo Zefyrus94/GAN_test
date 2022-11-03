@@ -195,6 +195,9 @@ def weights_init(m):
         torch.nn.init.constant_(m.bias, 0)
 ##train
 def train(gen, disc, dataloader):
+    cur_step = 0
+    generator_losses = []
+    discriminator_losses = []
     num_of_batches = len(dataloader)
     for epoch in range(n_epochs):
         dataloader.sampler.set_epoch(epoch)
@@ -343,9 +346,7 @@ gen = gen.apply(weights_init)
 disc = disc.apply(weights_init)
 # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED CELL
-cur_step = 0
-generator_losses = []
-discriminator_losses = []
+
 #UNIT TEST NOTE: Initializations needed for grading
 noise_and_labels = False
 fake = False

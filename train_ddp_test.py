@@ -149,6 +149,7 @@ def train(gen, disc, trainloader):
         for i, data in enumerate(trainloader, 0):
             # get the real; data is a list of [real, labels]
             real, labels = data
+            cur_batch_size = len(real)
             #real, labels = real.cuda(), labels.cuda() 
             # zero the parameter gradients
             real = real.to(device)

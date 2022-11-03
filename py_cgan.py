@@ -6,7 +6,6 @@ from torchvision.datasets import MNIST
 from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
-import time
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 class Generator(nn.Module):
     '''
@@ -195,16 +194,7 @@ def get_input_dimensions(z_dim, mnist_shape, n_classes):
     discriminator_im_chan = mnist_shape[0] + n_classes
     #### END CODE HERE ####
     return generator_input_dim, discriminator_im_chan
-def create_data_loader_mnist():
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,)),
-    ])
-    #batch_size = 256
-    mnist_data = MNIST(root='./data', download=True, transform=transform)
-    dataloader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size,
-                                            num_workers=16, pin_memory=True)
-    return dataloader
+
 generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
 
 gen = Generator(input_dim=generator_input_dim).to(device)
@@ -221,7 +211,6 @@ def weights_init(m):
 gen = gen.apply(weights_init)
 disc = disc.apply(weights_init)
 
-dataloader = create_data_loader_mnist()
 # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED CELL
 cur_step = 0

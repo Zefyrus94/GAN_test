@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
+#
+from torchsummary import summary
 #distribution
 import os
 import torch.distributed as dist

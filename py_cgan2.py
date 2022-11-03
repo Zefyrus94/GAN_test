@@ -206,55 +206,56 @@ def train(gen, disc, dataloader):
         # Dataloader returns the batches and the labels
         #real, labels in tqdm(dataloader):
         for i, data in enumerate(dataloader, 0):
-            real, labels = data
-            cur_batch_size = len(real)
-            # Flatten the batch of real images from the dataset
-            real = real.to(device)
-            one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
-            image_one_hot_labels = one_hot_labels[:, :, None, None]
-            image_one_hot_labels = image_one_hot_labels.repeat(1, 1, mnist_shape[1], mnist_shape[2])
-            ### Update discriminator ###
-            # Zero out the discriminator gradients
-            disc_opt.zero_grad()
-            # Get noise corresponding to the current batch_size
-            fake_noise = get_noise(cur_batch_size, z_dim, device=device)
-            # Now you can get the images from the generator
-            # Steps: 1) Combine the noise vectors and the one-hot labels for the generator
-            #        2) Generate the conditioned fake images
-            #### START CODE HERE ####
-            noise_and_labels = combine_vectors(fake_noise, one_hot_labels)
-            fake = gen(noise_and_labels)
-            #### END CODE HERE ####
-            # Make sure that enough images were generated
-            assert len(fake) == len(real)
-            # Check that correct tensors were combined
-            assert tuple(noise_and_labels.shape) == (cur_batch_size, fake_noise.shape[1] + one_hot_labels.shape[1])
-            # It comes from the correct generator
-            assert tuple(fake.shape) == (len(real), 1, 28, 28)
-            # Now you can get the predictions from the discriminator
-            # Steps: 1) Create the input for the discriminator
-            #           a) Combine the fake images with image_one_hot_labels,
-            #              remember to detach the generator (.detach()) so you do not backpropagate through it
-            #           b) Combine the real images with image_one_hot_labels
-            #        2) Get the discriminator's prediction on the fakes as disc_fake_pred
-            #        3) Get the discriminator's prediction on the reals as disc_real_pred
-            #### START CODE HERE ####
-            fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
-            real_image_and_labels = combine_vectors(real, image_one_hot_labels)
-            disc_fake_pred = disc(fake_image_and_labels.detach())
-            disc_real_pred = disc(real_image_and_labels)
-            #### END CODE HERE ####
-            # Make sure shapes are correct
-            assert tuple(fake_image_and_labels.shape) == (len(real), fake.detach().shape[1] + image_one_hot_labels.shape[1], 28 ,28)
-            assert tuple(real_image_and_labels.shape) == (len(real), real.shape[1] + image_one_hot_labels.shape[1], 28 ,28)
-            # Make sure that enough predictions were made
-            assert len(disc_real_pred) == len(real)
-            # Make sure that the inputs are different
-            assert torch.any(fake_image_and_labels != real_image_and_labels)
-            # Shapes must match
-            assert tuple(fake_image_and_labels.shape) == tuple(real_image_and_labels.shape)
-            assert tuple(disc_fake_pred.shape) == tuple(disc_real_pred.shape)
             with torch.autograd.set_detect_anomaly(True):
+                real, labels = data
+                cur_batch_size = len(real)
+                # Flatten the batch of real images from the dataset
+                real = real.to(device)
+                one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
+                image_one_hot_labels = one_hot_labels[:, :, None, None]
+                image_one_hot_labels = image_one_hot_labels.repeat(1, 1, mnist_shape[1], mnist_shape[2])
+                ### Update discriminator ###
+                # Zero out the discriminator gradients
+                disc_opt.zero_grad()
+                # Get noise corresponding to the current batch_size
+                fake_noise = get_noise(cur_batch_size, z_dim, device=device)
+                # Now you can get the images from the generator
+                # Steps: 1) Combine the noise vectors and the one-hot labels for the generator
+                #        2) Generate the conditioned fake images
+                #### START CODE HERE ####
+                noise_and_labels = combine_vectors(fake_noise, one_hot_labels)
+                fake = gen(noise_and_labels)
+                #### END CODE HERE ####
+                # Make sure that enough images were generated
+                assert len(fake) == len(real)
+                # Check that correct tensors were combined
+                assert tuple(noise_and_labels.shape) == (cur_batch_size, fake_noise.shape[1] + one_hot_labels.shape[1])
+                # It comes from the correct generator
+                assert tuple(fake.shape) == (len(real), 1, 28, 28)
+                # Now you can get the predictions from the discriminator
+                # Steps: 1) Create the input for the discriminator
+                #           a) Combine the fake images with image_one_hot_labels,
+                #              remember to detach the generator (.detach()) so you do not backpropagate through it
+                #           b) Combine the real images with image_one_hot_labels
+                #        2) Get the discriminator's prediction on the fakes as disc_fake_pred
+                #        3) Get the discriminator's prediction on the reals as disc_real_pred
+                #### START CODE HERE ####
+                fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
+                real_image_and_labels = combine_vectors(real, image_one_hot_labels)
+                disc_fake_pred = disc(fake_image_and_labels.detach())
+                disc_real_pred = disc(real_image_and_labels)
+                #### END CODE HERE ####
+                # Make sure shapes are correct
+                assert tuple(fake_image_and_labels.shape) == (len(real), fake.detach().shape[1] + image_one_hot_labels.shape[1], 28 ,28)
+                assert tuple(real_image_and_labels.shape) == (len(real), real.shape[1] + image_one_hot_labels.shape[1], 28 ,28)
+                # Make sure that enough predictions were made
+                assert len(disc_real_pred) == len(real)
+                # Make sure that the inputs are different
+                assert torch.any(fake_image_and_labels != real_image_and_labels)
+                # Shapes must match
+                assert tuple(fake_image_and_labels.shape) == tuple(real_image_and_labels.shape)
+                assert tuple(disc_fake_pred.shape) == tuple(disc_real_pred.shape)
+
                 disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
                 disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
                 disc_loss = (disc_fake_loss + disc_real_loss) / 2

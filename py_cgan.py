@@ -163,15 +163,17 @@ batch_size = 128
 lr = 0.0002
 device = 'cuda'
 
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,)),
-])
-
-dataloader = DataLoader(
-    MNIST('.', download=True, transform=transform),
-    batch_size=batch_size,
-    shuffle=True)
+def create_data_loader_mnist():
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),
+    ])
+    #batch_size = 256
+    mnist_data = MNIST(root='./data', download=True, transform=transform)
+    train_sampler = torch.utils.data.distributed.DistributedSampler(dataset=mnist_data, shuffle=True)
+    dataloader = torch.utils.data.DataLoader(mnist_data, batch_size=batch_size,
+                                            sampler=train_sampler, num_workers=16, pin_memory=True)
+    return dataloader
 
 # UNQ_C3 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED FUNCTION: get_input_dimensions

@@ -380,9 +380,9 @@ if __name__ == '__main__':
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
     print("Architettura Generatore")
-    summary(gen, (gen_input_dim,))
+    summary(gen, (generator_input_dim,))
     print("Architettura Discriminatore")
-    summary(disc, (disc_input_dim,image_width,image_height)) 
+    summary(disc, (discriminator_im_chan,28,28)) 
     exit()
     #
     start_train = time.time()

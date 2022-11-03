@@ -28,9 +28,10 @@ class Discriminator(nn.Module):
     def forward(self, image):
         disc_pred = self.disc(image)
         return disc_pred.view(len(disc_pred), -1)
-#
+"""
 print("preambolo...")
 from torchsummary import summary
 disc = Discriminator().to('cpu') 
 summary(disc, (13,64,64))
 #exit()
+"""

@@ -218,7 +218,7 @@ def weights_init(m):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
 
-def train(gen,disc,dataloader):
+def train(gen,disc,dataloader,loss_f):
     # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
     # GRADED CELL
     cur_step = 0
@@ -236,7 +236,6 @@ def train(gen,disc,dataloader):
     num_of_batches = len(dataloader)
     for epoch in range(n_epochs):
         dataloader.sampler.set_epoch(epoch)
-        #c
         running_loss_d = 0.0
         running_loss_g = 0.0
         # Dataloader returns the batches and the labels
@@ -316,6 +315,7 @@ def train(gen,disc,dataloader):
                 print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
             cur_step += 1
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
+        loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
 def init_distributed():
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
     dist_url = "env://" # default
@@ -352,7 +352,9 @@ if __name__ == '__main__':
     gen = nn.parallel.DistributedDataParallel(gen, broadcast_buffers=False, device_ids=[local_rank])
     disc = nn.parallel.DistributedDataParallel(disc, broadcast_buffers=False, device_ids=[local_rank])
     start_train = time.time()
+    loss_f = open("loss.txt", "a")
     train(gen, disc, dataloader)
+    loss_f.close()
     end_train = time.time()
     # save
     if is_main_process:

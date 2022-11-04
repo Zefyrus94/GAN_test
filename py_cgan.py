@@ -27,7 +27,6 @@ class Generator(nn.Module):
             self.make_gen_block(hidden_dim * 2, hidden_dim),
             self.make_gen_block(hidden_dim, im_chan, kernel_size=4, final_layer=True),
         )
-
     def make_gen_block(self, input_channels, output_channels, kernel_size=3, stride=2, final_layer=False):
         '''
         Function to return a sequence of operations corresponding to a generator block of DCGAN;
@@ -51,7 +50,6 @@ class Generator(nn.Module):
                 nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
                 nn.Tanh(),
             )
-
     def forward(self, noise):
         '''
         Function for completing a forward pass of the generator: Given a noise tensor, 
@@ -61,7 +59,6 @@ class Generator(nn.Module):
         '''
         x = noise.view(len(noise), self.input_dim, 1, 1)
         return self.gen(x)
-
 def get_noise(n_samples, input_dim, device='cpu'):
     '''
     Function for creating noise vectors: Given the dimensions (n_samples, input_dim)
@@ -87,7 +84,6 @@ class Discriminator(nn.Module):
             self.make_disc_block(hidden_dim, hidden_dim * 2),
             self.make_disc_block(hidden_dim * 2, 1, final_layer=True),
         )
-
     def make_disc_block(self, input_channels, output_channels, kernel_size=4, stride=2, final_layer=False):
         '''
         Function to return a sequence of operations corresponding to a discriminator block of the DCGAN; 
@@ -110,7 +106,6 @@ class Discriminator(nn.Module):
             return nn.Sequential(
                 nn.Conv2d(input_channels, output_channels, kernel_size, stride),
             )
-
     def forward(self, image):
         '''
         Function for completing a forward pass of the discriminator: Given an image tensor, 
@@ -122,7 +117,6 @@ class Discriminator(nn.Module):
         return disc_pred.view(len(disc_pred), -1)
 # UNQ_C1 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED FUNCTION: get_one_hot_labels
-
 import torch.nn.functional as F
 def get_one_hot_labels(labels, n_classes):
     '''
@@ -154,7 +148,6 @@ def combine_vectors(x, y):
     return combined
 mnist_shape = (1, 28, 28)
 n_classes = 10
-
 criterion = nn.BCEWithLogitsLoss()
 n_epochs = 200
 z_dim = 64
@@ -162,17 +155,14 @@ display_step = 500
 batch_size = 128
 lr = 0.0002
 device = 'cuda'
-
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,)),
 ])
-
 dataloader = DataLoader(
     MNIST('.', download=True, transform=transform),
     batch_size=batch_size,
     shuffle=True)
-
 # UNQ_C3 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 # GRADED FUNCTION: get_input_dimensions
 def get_input_dimensions(z_dim, mnist_shape, n_classes):
@@ -205,41 +195,37 @@ def create_data_loader_mnist():
     #num_workers=16, pin_memory=True
     dataloader = DataLoader(mnist_data, batch_size=batch_size,shuffle=True,num_workers=16)
     return dataloader
-
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
     if isinstance(m, nn.BatchNorm2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
-
-def train(gen,disc,dataloader):
+def train(gen,disc,dataloader,loss_f):
 	# UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
 	# GRADED CELL
 	cur_step = 0
 	generator_losses = []
 	discriminator_losses = []
-
 	#UNIT TEST NOTE: Initializations needed for grading
 	noise_and_labels = False
 	fake = False
-
 	fake_image_and_labels = False
 	real_image_and_labels = False
 	disc_fake_pred = False
 	disc_real_pred = False
-	
+	num_of_batches = len(dataloader)
 	for epoch in range(n_epochs):
+		running_loss_d = 0.0
+		running_loss_g = 0.0
 	    # Dataloader returns the batches and the labels
 	    for real, labels in tqdm(dataloader):
 	        cur_batch_size = len(real)
 	        # Flatten the batch of real images from the dataset
 	        real = real.to(device)
-
 	        one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
 	        image_one_hot_labels = one_hot_labels[:, :, None, None]
 	        image_one_hot_labels = image_one_hot_labels.repeat(1, 1, mnist_shape[1], mnist_shape[2])
-
 	        ### Update discriminator ###
 	        # Zero out the discriminator gradients
 	        disc_opt.zero_grad()
@@ -261,7 +247,6 @@ def train(gen,disc,dataloader):
 	        assert tuple(noise_and_labels.shape) == (cur_batch_size, fake_noise.shape[1] + one_hot_labels.shape[1])
 	        # It comes from the correct generator
 	        assert tuple(fake.shape) == (len(real), 1, 28, 28)
-
 	        # Now you can get the predictions from the discriminator
 	        # Steps: 1) Create the input for the discriminator
 	        #           a) Combine the fake images with image_one_hot_labels, 
@@ -294,24 +279,21 @@ def train(gen,disc,dataloader):
 	        disc_loss = (disc_fake_loss + disc_real_loss) / 2
 	        disc_loss.backward(retain_graph=True)
 	        disc_opt.step() 
-
 	        # Keep track of the average discriminator loss
 	        discriminator_losses += [disc_loss.item()]
-
+	        running_loss_d += disc_loss.item()
 	        ### Update generator ###
 	        # Zero out the generator gradients
 	        gen_opt.zero_grad()
-
 	        fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
 	        # This will error if you didn't concatenate your labels to your image correctly
 	        disc_fake_pred = disc(fake_image_and_labels)
 	        gen_loss = criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
 	        gen_loss.backward()
 	        gen_opt.step()
-
 	        # Keep track of the generator losses
 	        generator_losses += [gen_loss.item()]
-	        #
+	        running_loss_g += gen_loss.item()
 	        if cur_step % display_step == 0 and cur_step > 0:
 	            gen_mean = sum(generator_losses[-display_step:]) / display_step
 	            disc_mean = sum(discriminator_losses[-display_step:]) / display_step
@@ -338,6 +320,8 @@ def train(gen,disc,dataloader):
 	        elif cur_step == 0:
 	            print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
 	        cur_step += 1
+	    print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
+	    loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
 if __name__ == '__main__':
 	start = time.time()
 	PATH_D = './mnist_disc.pth'
@@ -351,7 +335,9 @@ if __name__ == '__main__':
 	gen = gen.apply(weights_init)
 	disc = disc.apply(weights_init)
 	start_train = time.time()
-	train(gen, disc, dataloader)
+	loss_f = open("loss.txt", "a")
+	train(gen, disc, dataloader, loss_f)
+	loss_f.close()
 	end_train = time.time()
 	# save
 	torch.save(gen.state_dict(), PATH_G)

@@ -352,7 +352,7 @@ if __name__ == '__main__':
     gen = nn.parallel.DistributedDataParallel(gen, broadcast_buffers=False, device_ids=[local_rank])
     disc = nn.parallel.DistributedDataParallel(disc, broadcast_buffers=False, device_ids=[local_rank])
     start_train = time.time()
-    loss_f = open("loss.txt", "a")
+    loss_f = open("loss_d.txt", "a")
     train(gen, disc, dataloader, loss_f)
     loss_f.close()
     end_train = time.time()

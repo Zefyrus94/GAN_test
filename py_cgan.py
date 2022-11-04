@@ -235,12 +235,10 @@ def train(gen,disc,dataloader,loss_f):
 	        # Now you can get the images from the generator
 	        # Steps: 1) Combine the noise vectors and the one-hot labels for the generator
 	        #        2) Generate the conditioned fake images
-	       
 	        #### START CODE HERE ####
 	        noise_and_labels = combine_vectors(fake_noise, one_hot_labels)
 	        fake = gen(noise_and_labels)
 	        #### END CODE HERE ####
-	        
 	        # Make sure that enough images were generated
 	        assert len(fake) == len(real)
 	        # Check that correct tensors were combined
@@ -254,14 +252,12 @@ def train(gen,disc,dataloader,loss_f):
 	        #           b) Combine the real images with image_one_hot_labels
 	        #        2) Get the discriminator's prediction on the fakes as disc_fake_pred
 	        #        3) Get the discriminator's prediction on the reals as disc_real_pred
-	        
 	        #### START CODE HERE ####
 	        fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
 	        real_image_and_labels = combine_vectors(real, image_one_hot_labels)
 	        disc_fake_pred = disc(fake_image_and_labels.detach())
 	        disc_real_pred = disc(real_image_and_labels)
 	        #### END CODE HERE ####
-	        
 	        # Make sure shapes are correct 
 	        assert tuple(fake_image_and_labels.shape) == (len(real), fake.detach().shape[1] + image_one_hot_labels.shape[1], 28 ,28)
 	        assert tuple(real_image_and_labels.shape) == (len(real), real.shape[1] + image_one_hot_labels.shape[1], 28 ,28)
@@ -272,8 +268,6 @@ def train(gen,disc,dataloader,loss_f):
 	        # Shapes must match
 	        assert tuple(fake_image_and_labels.shape) == tuple(real_image_and_labels.shape)
 	        assert tuple(disc_fake_pred.shape) == tuple(disc_real_pred.shape)
-	        
-	        
 	        disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
 	        disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
 	        disc_loss = (disc_fake_loss + disc_real_loss) / 2
@@ -322,6 +316,7 @@ def train(gen,disc,dataloader,loss_f):
 	        cur_step += 1
 	    print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
 	    loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
+#main
 if __name__ == '__main__':
 	start = time.time()
 	PATH_D = './mnist_disc.pth'

@@ -356,8 +356,10 @@ if __name__ == '__main__':
     end_train = time.time()
     # save
     if is_main_process:
-        save_on_master(gen.state_dict(), PATH_G)
-        save_on_master(disc.state_dict(), PATH_D)
+        torch.save(gen.state_dict(), PATH_G)
+        torch.save(disc.state_dict(), PATH_D)
+        #save_on_master(gen.state_dict(), PATH_G)
+        #save_on_master(disc.state_dict(), PATH_D)
     dist.barrier()
     end = time.time()
     seconds = (end - start)

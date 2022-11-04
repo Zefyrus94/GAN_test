@@ -1,3 +1,4 @@
+#Total elapsed time: 3833.64 seconds,     Train 200 epochs 3831.86 seconds
 import torch
 from torch import nn
 from tqdm.auto import tqdm

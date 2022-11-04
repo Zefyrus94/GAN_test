@@ -159,7 +159,7 @@ mnist_shape = (1, 28, 28)
 n_classes = 10
 
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 10#200
+n_epochs = 200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -356,10 +356,10 @@ if __name__ == '__main__':
     end_train = time.time()
     # save
     if is_main_process:
-        torch.save(gen.state_dict(), PATH_G)
-        torch.save(disc.state_dict(), PATH_D)
-        #save_on_master(gen.state_dict(), PATH_G)
-        #save_on_master(disc.state_dict(), PATH_D)
+        #torch.save(gen.state_dict(), PATH_G)
+        #torch.save(disc.state_dict(), PATH_D)
+        save_on_master(gen.state_dict(), PATH_G)
+        save_on_master(disc.state_dict(), PATH_D)
     dist.barrier()
     end = time.time()
     seconds = (end - start)

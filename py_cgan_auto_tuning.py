@@ -206,7 +206,27 @@ def weights_init(m):
     if isinstance(m, nn.BatchNorm2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
-def train(config,gen,disc,dataloader,loss_f):
+def train(config):
+    #
+    dataloader = create_data_loader_mnist()
+    generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
+    gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
+    #https://discuss.pytorch.org/t/syntax-error-on-ray-ray-tune-not-supported-between-instances-of-float-and-float/144693
+    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"].sample())#=lr
+    disc = Discriminator(im_chan=discriminator_im_chan, hidden_dim=config["hidden_dim"]).to(device)
+    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"].sample())#=lr
+    gen = gen.apply(weights_init)
+    disc = disc.apply(weights_init)
+    checkpoint_g_path = None
+    if checkpoint_g_path:
+        gen_state, gen_opt_state = torch.load(checkpoint_g_path)
+        gen.load_state_dict(gen_state)
+        gen_opt.load_state_dict(gen_opt_state)
+        disc_state, disc_opt_state = torch.load(checkpoint_d_path)
+        disc.load_state_dict(disc_state)
+        disc_opt.load_state_dict(disc_opt_state)
+    ##
+    loss_f = open("loss.txt", "a")
     # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
     # GRADED CELL
     cur_step = 0
@@ -325,6 +345,7 @@ def train(config,gen,disc,dataloader,loss_f):
             #tune.report(loss_d=(running_loss_d / num_of_batches:.3f), loss_g=(running_loss_g / num_of_batches:.3f))
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
+        loss_f.close()
 #main
 if __name__ == '__main__':
     start = time.time()
@@ -337,23 +358,7 @@ if __name__ == '__main__':
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }
-    dataloader = create_data_loader_mnist()
-    generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
-    gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
-    #https://discuss.pytorch.org/t/syntax-error-on-ray-ray-tune-not-supported-between-instances-of-float-and-float/144693
-    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"].sample())#=lr
-    disc = Discriminator(im_chan=discriminator_im_chan, hidden_dim=config["hidden_dim"]).to(device)
-    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"].sample())#=lr
-    gen = gen.apply(weights_init)
-    disc = disc.apply(weights_init)
-    checkpoint_g_path = None
-    if checkpoint_g_path:
-        gen_state, gen_opt_state = torch.load(checkpoint_g_path)
-        gen.load_state_dict(gen_state)
-        gen_opt.load_state_dict(gen_opt_state)
-        disc_state, disc_opt_state = torch.load(checkpoint_d_path)
-        disc.load_state_dict(disc_state)
-        disc_opt.load_state_dict(disc_opt_state)
+    ##
     scheduler = ASHAScheduler(
         metric="loss_g",
         mode="min",

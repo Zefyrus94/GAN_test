@@ -333,7 +333,7 @@ if __name__ == '__main__':
     #search space
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
-        "hidden_dim": 64#tune.sample_from(lambda _: 2**np.random.randint(2, 9)),
+        "hidden_dim": 64,#tune.sample_from(lambda _: 2**np.random.randint(2, 9)),
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }

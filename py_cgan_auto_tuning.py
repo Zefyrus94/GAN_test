@@ -340,9 +340,10 @@ if __name__ == '__main__':
     dataloader = create_data_loader_mnist()
     generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
     gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
-    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"])#=lr
+    #https://discuss.pytorch.org/t/syntax-error-on-ray-ray-tune-not-supported-between-instances-of-float-and-float/144693
+    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"].sample())#=lr
     disc = Discriminator(im_chan=discriminator_im_chan, hidden_dim=config["hidden_dim"]).to(device)
-    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"])#=lr
+    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"].sample())#=lr
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
     if checkpoint_g_path:

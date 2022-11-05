@@ -224,7 +224,11 @@ def preprocess(img):
     return img
 def get_inception_model():
     #inception_v3_google-1a9a5a14.pth
-    inception_zip_path = "inception_v3_google-1a9a5a14.zip"
+    #TUNE_ORIG_WORKING_DIR
+    #https://discuss.ray.io/t/filenotfounderror-after-i-used-tune-run/5747
+    #ABSOLUTE PATH
+    #inception_zip_path = "inception_v3_google-1a9a5a14.zip"
+    inception_zip_path = "/home/nvidia/workspace/giacomobonanni/GAN_test/inception_v3_google-1a9a5a14.zip"
     with zipfile.ZipFile(inception_zip_path, 'r') as zip_ref:
         zip_ref.extractall('.')
     inception_path = "inception_v3_google-1a9a5a14.pth"

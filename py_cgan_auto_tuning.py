@@ -268,7 +268,10 @@ def get_fid(gen):
                 print("real...")
                 cur_batch_size = len(real_example)
                 real_samples = real_example
+                print("chiamo inception model...")
                 real_features = inception_model(real_samples.to(device)).detach().to('cpu') # Move features to CPU
+                print("chiamata conclusa a inception model...")
+                print("real_features",real_features)
                 real_features_list.append(real_features)
                 #print("len real_example",len(real_example))
                 #print("z_dim",z_dim)

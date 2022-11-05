@@ -318,7 +318,7 @@ def train(gen,disc,dataloader,loss_f):
 			    """
 			elif cur_step == 0:
 			    print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
-			cur_step += 1
+            cur_step += 1
             """
             with tune.checkpoint_dir(epoch) as checkpoint_dir:
                 path = os.path.join(checkpoint_dir, "checkpoint")

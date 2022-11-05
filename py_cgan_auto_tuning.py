@@ -20,6 +20,8 @@ from torch.distributions import MultivariateNormal
 import zipfile
 import scipy
 import numpy as np
+#clone modello
+import copy
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 print("cuda available?",torch.cuda.is_available())
 class Generator(nn.Module):

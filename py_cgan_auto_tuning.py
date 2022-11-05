@@ -344,7 +344,7 @@ def train(config):
             #with tune.checkpoint_dir(epoch) as checkpoint_dir:
             #    path = os.path.join(checkpoint_dir, "checkpoint")
             #    torch.save((net.state_dict(), optimizer.state_dict()), path)
-            #tune.report(loss_d=(running_loss_d / num_of_batches:.3f), loss_g=(running_loss_g / num_of_batches:.3f))
+            tune.report(loss_d=(running_loss_d / num_of_batches:.3f), loss_g=(running_loss_g / num_of_batches:.3f))
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
         loss_f.close()
@@ -369,7 +369,12 @@ if __name__ == '__main__':
         reduction_factor=2)
     reporter = CLIReporter(
         # parameter_columns=["l1", "l2", "lr", "batch_size"],
-        metric_columns=["loss_d", "loss_g"])
+        #metric_columns=["loss_d", "loss_g"]
+        )
+    #https://docs.ray.io/en/latest/tune/api_docs/reporters.html
+    # Add a custom metric column, in addition to the default metrics.
+    # Note that this must be a metric that is returned in your training results.
+    reporter.add_metric_column("loss_d")
     result = tune.run(
         #partial(train_cifar, data_dir=data_dir),
         train,

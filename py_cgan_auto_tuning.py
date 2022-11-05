@@ -14,6 +14,12 @@ from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
 #prove
 from random import randrange
+#fid
+from torchvision.models import inception_v3
+from torch.distributions import MultivariateNormal
+import zipfile
+import scipy
+import numpy as np
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 print("cuda available?",torch.cuda.is_available())
 class Generator(nn.Module):
@@ -209,6 +215,86 @@ def weights_init(m):
     if isinstance(m, nn.BatchNorm2d):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
+###FID
+def preprocess(img):
+    #img.unsqueeze(0)
+    img = torch.nn.functional.interpolate(img, size=(299, 299), mode='bilinear', align_corners=False)
+    return img
+def get_inception_model():
+    #inception_v3_google-1a9a5a14.pth
+    inception_zip_path = "inception_v3_google-1a9a5a14.zip"
+    with zipfile.ZipFile(inception_zip_path, 'r') as zip_ref:
+        zip_ref.extractall('.')
+    inception_path = "inception_v3_google-1a9a5a14.pth"
+    #exit("prova unzip")
+    inception_model = inception_v3(pretrained=False)
+    inception_model.load_state_dict(torch.load(inception_path))
+    inception_model.to(device)
+    inception_model = inception_model.eval()#for inference
+    inception_model.fc = torch.nn.Identity()
+    return inception_model
+def matrix_sqrt(x):
+    y = x.cpu().detach().numpy()
+    y = scipy.linalg.sqrtm(y)
+    return torch.Tensor(y.real, device=x.device)
+def frechet_distance(mu_x, mu_y, sigma_x, sigma_y):
+    return (mu_x - mu_y).dot(mu_x - mu_y) + torch.trace(sigma_x) + torch.trace(sigma_y) - 2 * torch.trace(matrix_sqrt(sigma_x @ sigma_y))
+def get_covariance(features):
+    return torch.Tensor(np.cov(features.detach().numpy(), rowvar=False))  
+def get_fid():
+    #image_size = 299
+    device = 'cuda'
+    dataloader = create_data_loader_mnist()
+    fake_features_list = []
+    real_features_list = []
+    gen.eval()#for inference
+    n_samples = 512 # The total number of samples
+    batch_size = 4 # Samples per iteration
+    cur_samples = 0
+    print("Recupero il modello InceptionV3...")
+    inception_model = get_inception_model()
+    print("Valutazione in corso...")
+    with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
+        try:
+            for real_example, labels in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
+                #!nvidia-smi
+                print("real...")
+                cur_batch_size = len(real_example)
+                real_samples = real_example
+                real_features = inception_model(real_samples.to(device)).detach().to('cpu') # Move features to CPU
+                real_features_list.append(real_features)
+                #print("len real_example",len(real_example))
+                #print("z_dim",z_dim)
+                print("fake...")
+                fake_samples = get_noise(cur_batch_size, z_dim).to(device)
+                one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
+                fake_samples = combine_vectors(fake_samples,one_hot_labels)
+                #print("shape fake_samples",fake_samples.shape)
+                fake_samples = gen(fake_samples)
+                print("generated",fake_samples.shape)
+                print("preprocess fake....")
+                fake_samples = preprocess(fake_samples)
+                print("shape fake_samples",fake_samples.shape)
+                fake_features = inception_model(fake_samples.to(device)).detach().to('cpu')
+                #print("shape fake_features",fake_features.shape)
+                fake_features_list.append(fake_features)
+                cur_samples += len(real_samples)
+                #print(f"{cur_samples}//{n_samples}")
+                if cur_samples >= n_samples:
+                    break
+        except Exception as e:
+            print(e)
+            exit("Error in loop")
+    #print(fake_features_list)
+    fake_features_all = torch.cat(fake_features_list)
+    real_features_all = torch.cat(real_features_list)
+    mu_fake = fake_features_all.mean(0)
+    mu_real = real_features_all.mean(0)
+    sigma_fake = get_covariance(fake_features_all)
+    sigma_real = get_covariance(real_features_all)
+    with torch.no_grad():
+        print("La FID per 5000 dati campione è: ",frechet_distance(mu_real, mu_fake, sigma_real, sigma_fake).item())
+###FINE FID
 def train(config):
     #https://discuss.ray.io/t/runtimeerror-no-cuda-gpus-are-available/1787
     assert torch.cuda.is_available()

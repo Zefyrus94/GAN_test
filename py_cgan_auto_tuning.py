@@ -155,7 +155,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 1#200
+n_epochs = 10#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -374,7 +374,7 @@ if __name__ == '__main__':
     #https://docs.ray.io/en/latest/tune/api_docs/reporters.html
     # Add a custom metric column, in addition to the default metrics.
     # Note that this must be a metric that is returned in your training results.
-    reporter.add_metric_column("loss_d")
+    #reporter.add_metric_column("loss_d")
     result = tune.run(
         #partial(train_cifar, data_dir=data_dir),
         train,

@@ -346,6 +346,7 @@ if __name__ == '__main__':
     disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"].sample())#=lr
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
+    checkpoint_g_path = None
     if checkpoint_g_path:
         gen_state, gen_opt_state = torch.load(checkpoint_g_path)
         gen.load_state_dict(gen_state)

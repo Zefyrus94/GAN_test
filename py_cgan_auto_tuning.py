@@ -12,6 +12,7 @@ import time
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
+import pandas as pd#float vs Float
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 class Generator(nn.Module):
     '''
@@ -334,8 +335,8 @@ if __name__ == '__main__':
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
         "hidden_dim": 64,#tune.sample_from(lambda _: 2**np.random.randint(2, 9)),
-        "lr_g": tune.loguniform(1e-4, 1e-1),
-        "lr_d": tune.loguniform(1e-4, 1e-1)
+        "lr_g": pd.to_numeric(tune.loguniform(1e-4, 1e-1)),
+        "lr_d": pd.to_numeric(tune.loguniform(1e-4, 1e-1))
     }
     dataloader = create_data_loader_mnist()
     generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)

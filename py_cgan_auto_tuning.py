@@ -13,8 +13,7 @@ from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
-print(torch.cuda.is_available())
-exit()
+print("cuda available?",torch.cuda.is_available())
 class Generator(nn.Module):
     '''
     Generator Class

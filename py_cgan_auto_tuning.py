@@ -12,6 +12,8 @@ import time
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
+#prove
+from random import randrange
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 print("cuda available?",torch.cuda.is_available())
 class Generator(nn.Module):
@@ -155,7 +157,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 10#200
+n_epochs = 12#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -344,7 +346,9 @@ def train(config):
             #with tune.checkpoint_dir(epoch) as checkpoint_dir:
             #    path = os.path.join(checkpoint_dir, "checkpoint")
             #    torch.save((net.state_dict(), optimizer.state_dict()), path)
-            tune.report(loss_d=(running_loss_d / num_of_batches), loss_g=(running_loss_g / num_of_batches))
+            #prove fid
+            fid = randrange(10)
+            tune.report(fid=fid, loss_d=(running_loss_d / num_of_batches), loss_g=(running_loss_g / num_of_batches))
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
         loss_f.close()
@@ -378,14 +382,14 @@ if __name__ == '__main__':
     result = tune.run(
         #partial(train_cifar, data_dir=data_dir),
         train,
-        max_failures=100, # set this to a large value, 100 works in my case
-        resources_per_trial={"cpu": 2, "gpu": 1},
+        max_failures=10,#0, # set this to a large value, 100 works in my case
+        resources_per_trial={"cpu": 2, "gpu": 1},#o non vede la gpu (cuda.device)
         config=config,
         num_samples=10,#num_samples,
         scheduler=scheduler,
         progress_reporter=reporter)
 
-    best_trial = result.get_best_trial("loss_g", "min", "last")
+    best_trial = result.get_best_trial("fid", "min", "last")#loss_g
     print("Best trial config: {}".format(best_trial.config))
     print("Best trial final validation loss_g: {}".format(
         best_trial.last_result["loss_g"]))

@@ -207,129 +207,129 @@ def weights_init(m):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
 def train(gen,disc,dataloader,loss_f):
-	# UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
-	# GRADED CELL
-	cur_step = 0
-	generator_losses = []
-	discriminator_losses = []
-	#UNIT TEST NOTE: Initializations needed for grading
-	noise_and_labels = False
-	fake = False
-	fake_image_and_labels = False
-	real_image_and_labels = False
-	disc_fake_pred = False
-	disc_real_pred = False
-	num_of_batches = len(dataloader)
-	for epoch in range(n_epochs):
-		running_loss_d = 0.0
-		running_loss_g = 0.0
-		# Dataloader returns the batches and the labels
-		for real, labels in tqdm(dataloader):
-			cur_batch_size = len(real)
-			# Flatten the batch of real images from the dataset
-			real = real.to(device)
-			one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
-			image_one_hot_labels = one_hot_labels[:, :, None, None]
-			image_one_hot_labels = image_one_hot_labels.repeat(1, 1, mnist_shape[1], mnist_shape[2])
-			### Update discriminator ###
-			# Zero out the discriminator gradients
-			disc_opt.zero_grad()
-			# Get noise corresponding to the current batch_size 
-			fake_noise = get_noise(cur_batch_size, z_dim, device=device)
+    # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
+    # GRADED CELL
+    cur_step = 0
+    generator_losses = []
+    discriminator_losses = []
+    #UNIT TEST NOTE: Initializations needed for grading
+    noise_and_labels = False
+    fake = False
+    fake_image_and_labels = False
+    real_image_and_labels = False
+    disc_fake_pred = False
+    disc_real_pred = False
+    num_of_batches = len(dataloader)
+    for epoch in range(n_epochs):
+        running_loss_d = 0.0
+        running_loss_g = 0.0
+        # Dataloader returns the batches and the labels
+        for real, labels in tqdm(dataloader):
+            cur_batch_size = len(real)
+            # Flatten the batch of real images from the dataset
+            real = real.to(device)
+            one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
+            image_one_hot_labels = one_hot_labels[:, :, None, None]
+            image_one_hot_labels = image_one_hot_labels.repeat(1, 1, mnist_shape[1], mnist_shape[2])
+            ### Update discriminator ###
+            # Zero out the discriminator gradients
+            disc_opt.zero_grad()
+            # Get noise corresponding to the current batch_size 
+            fake_noise = get_noise(cur_batch_size, z_dim, device=device)
 
-			# Now you can get the images from the generator
-			# Steps: 1) Combine the noise vectors and the one-hot labels for the generator
-			#        2) Generate the conditioned fake images
-			#### START CODE HERE ####
-			noise_and_labels = combine_vectors(fake_noise, one_hot_labels)
-			fake = gen(noise_and_labels)
-			#### END CODE HERE ####
-			# Make sure that enough images were generated
-			assert len(fake) == len(real)
-			# Check that correct tensors were combined
-			assert tuple(noise_and_labels.shape) == (cur_batch_size, fake_noise.shape[1] + one_hot_labels.shape[1])
-			# It comes from the correct generator
-			assert tuple(fake.shape) == (len(real), 1, 28, 28)
-			# Now you can get the predictions from the discriminator
-			# Steps: 1) Create the input for the discriminator
-			#           a) Combine the fake images with image_one_hot_labels, 
-			#              remember to detach the generator (.detach()) so you do not backpropagate through it
-			#           b) Combine the real images with image_one_hot_labels
-			#        2) Get the discriminator's prediction on the fakes as disc_fake_pred
-			#        3) Get the discriminator's prediction on the reals as disc_real_pred
-			#### START CODE HERE ####
-			fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
-			real_image_and_labels = combine_vectors(real, image_one_hot_labels)
-			disc_fake_pred = disc(fake_image_and_labels.detach())
-			disc_real_pred = disc(real_image_and_labels)
-			#### END CODE HERE ####
-			# Make sure shapes are correct 
-			assert tuple(fake_image_and_labels.shape) == (len(real), fake.detach().shape[1] + image_one_hot_labels.shape[1], 28 ,28)
-			assert tuple(real_image_and_labels.shape) == (len(real), real.shape[1] + image_one_hot_labels.shape[1], 28 ,28)
-			# Make sure that enough predictions were made
-			assert len(disc_real_pred) == len(real)
-			# Make sure that the inputs are different
-			assert torch.any(fake_image_and_labels != real_image_and_labels)
-			# Shapes must match
-			assert tuple(fake_image_and_labels.shape) == tuple(real_image_and_labels.shape)
-			assert tuple(disc_fake_pred.shape) == tuple(disc_real_pred.shape)
-			disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
-			disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
-			disc_loss = (disc_fake_loss + disc_real_loss) / 2
-			disc_loss.backward(retain_graph=True)
-			disc_opt.step() 
-			# Keep track of the average discriminator loss
-			discriminator_losses += [disc_loss.item()]
-			running_loss_d += disc_loss.item()
-			### Update generator ###
-			# Zero out the generator gradients
-			gen_opt.zero_grad()
-			fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
-			# This will error if you didn't concatenate your labels to your image correctly
-			disc_fake_pred = disc(fake_image_and_labels)
-			gen_loss = criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
-			gen_loss.backward()
-			gen_opt.step()
-			# Keep track of the generator losses
-			generator_losses += [gen_loss.item()]
-			running_loss_g += gen_loss.item()
-			if cur_step % display_step == 0 and cur_step > 0:
-			    gen_mean = sum(generator_losses[-display_step:]) / display_step
-			    disc_mean = sum(discriminator_losses[-display_step:]) / display_step
-			    print(f"Step {cur_step}: Generator loss: {gen_mean}, discriminator loss: {disc_mean}")
-			    """
-			    show_tensor_images(fake)
-			    show_tensor_images(real)
-			    step_bins = 20
-			    x_axis = sorted([i * step_bins for i in range(len(generator_losses) // step_bins)] * step_bins)
-			    num_examples = (len(generator_losses) // step_bins) * step_bins
-			    plt.plot(
-			        range(num_examples // step_bins), 
-			        torch.Tensor(generator_losses[:num_examples]).view(-1, step_bins).mean(1),
-			        label="Generator Loss"
-			    )
-			    plt.plot(
-			        range(num_examples // step_bins), 
-			        torch.Tensor(discriminator_losses[:num_examples]).view(-1, step_bins).mean(1),
-			        label="Discriminator Loss"
-			    )
-			    plt.legend()
-			    plt.show()
-			    """
-			elif cur_step == 0:
-			    print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
-			cur_step += 1
+            # Now you can get the images from the generator
+            # Steps: 1) Combine the noise vectors and the one-hot labels for the generator
+            #        2) Generate the conditioned fake images
+            #### START CODE HERE ####
+            noise_and_labels = combine_vectors(fake_noise, one_hot_labels)
+            fake = gen(noise_and_labels)
+            #### END CODE HERE ####
+            # Make sure that enough images were generated
+            assert len(fake) == len(real)
+            # Check that correct tensors were combined
+            assert tuple(noise_and_labels.shape) == (cur_batch_size, fake_noise.shape[1] + one_hot_labels.shape[1])
+            # It comes from the correct generator
+            assert tuple(fake.shape) == (len(real), 1, 28, 28)
+            # Now you can get the predictions from the discriminator
+            # Steps: 1) Create the input for the discriminator
+            #           a) Combine the fake images with image_one_hot_labels, 
+            #              remember to detach the generator (.detach()) so you do not backpropagate through it
+            #           b) Combine the real images with image_one_hot_labels
+            #        2) Get the discriminator's prediction on the fakes as disc_fake_pred
+            #        3) Get the discriminator's prediction on the reals as disc_real_pred
+            #### START CODE HERE ####
+            fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
+            real_image_and_labels = combine_vectors(real, image_one_hot_labels)
+            disc_fake_pred = disc(fake_image_and_labels.detach())
+            disc_real_pred = disc(real_image_and_labels)
+            #### END CODE HERE ####
+            # Make sure shapes are correct 
+            assert tuple(fake_image_and_labels.shape) == (len(real), fake.detach().shape[1] + image_one_hot_labels.shape[1], 28 ,28)
+            assert tuple(real_image_and_labels.shape) == (len(real), real.shape[1] + image_one_hot_labels.shape[1], 28 ,28)
+            # Make sure that enough predictions were made
+            assert len(disc_real_pred) == len(real)
+            # Make sure that the inputs are different
+            assert torch.any(fake_image_and_labels != real_image_and_labels)
+            # Shapes must match
+            assert tuple(fake_image_and_labels.shape) == tuple(real_image_and_labels.shape)
+            assert tuple(disc_fake_pred.shape) == tuple(disc_real_pred.shape)
+            disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
+            disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
+            disc_loss = (disc_fake_loss + disc_real_loss) / 2
+            disc_loss.backward(retain_graph=True)
+            disc_opt.step() 
+            # Keep track of the average discriminator loss
+            discriminator_losses += [disc_loss.item()]
+            running_loss_d += disc_loss.item()
+            ### Update generator ###
+            # Zero out the generator gradients
+            gen_opt.zero_grad()
+            fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
+            # This will error if you didn't concatenate your labels to your image correctly
+            disc_fake_pred = disc(fake_image_and_labels)
+            gen_loss = criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
+            gen_loss.backward()
+            gen_opt.step()
+            # Keep track of the generator losses
+            generator_losses += [gen_loss.item()]
+            running_loss_g += gen_loss.item()
+            if cur_step % display_step == 0 and cur_step > 0:
+                gen_mean = sum(generator_losses[-display_step:]) / display_step
+                disc_mean = sum(discriminator_losses[-display_step:]) / display_step
+                print(f"Step {cur_step}: Generator loss: {gen_mean}, discriminator loss: {disc_mean}")
+                """
+                show_tensor_images(fake)
+                show_tensor_images(real)
+                step_bins = 20
+                x_axis = sorted([i * step_bins for i in range(len(generator_losses) // step_bins)] * step_bins)
+                num_examples = (len(generator_losses) // step_bins) * step_bins
+                plt.plot(
+                    range(num_examples // step_bins), 
+                    torch.Tensor(generator_losses[:num_examples]).view(-1, step_bins).mean(1),
+                    label="Generator Loss"
+                )
+                plt.plot(
+                    range(num_examples // step_bins), 
+                    torch.Tensor(discriminator_losses[:num_examples]).view(-1, step_bins).mean(1),
+                    label="Discriminator Loss"
+                )
+                plt.legend()
+                plt.show()
+                """
+            elif cur_step == 0:
+                print("Congratulations! If you've gotten here, it's working. Please let this train until you're happy with how the generated numbers look, and then go on to the exploration!")
+            cur_step += 1
             #with tune.checkpoint_dir(epoch) as checkpoint_dir:
             #    path = os.path.join(checkpoint_dir, "checkpoint")
             #    torch.save((net.state_dict(), optimizer.state_dict()), path)
-            tune.report(loss_d=(running_loss_d / num_of_batches:.3f), loss_g=(running_loss_g / num_of_batches:.3f))
-		print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
-		loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
+            #tune.report(loss_d=(running_loss_d / num_of_batches:.3f), loss_g=(running_loss_g / num_of_batches:.3f))
+        print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
+        loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
 #main
 if __name__ == '__main__':
-	start = time.time()
-	PATH_D = './mnist_disc.pth'
-	PATH_G = './mnist_gen.pth'
+    start = time.time()
+    PATH_D = './mnist_disc.pth'
+    PATH_G = './mnist_gen.pth'
     #search space
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
@@ -337,14 +337,14 @@ if __name__ == '__main__':
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }
-	dataloader = create_data_loader_mnist()
-	generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
-	gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
-	gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"])#=lr
-	disc = Discriminator(im_chan=discriminator_im_chan, hidden_dim=config["hidden_dim"]).to(device)
-	disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"])#=lr
-	gen = gen.apply(weights_init)
-	disc = disc.apply(weights_init)
+    dataloader = create_data_loader_mnist()
+    generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
+    gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
+    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"])#=lr
+    disc = Discriminator(im_chan=discriminator_im_chan, hidden_dim=config["hidden_dim"]).to(device)
+    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"])#=lr
+    gen = gen.apply(weights_init)
+    disc = disc.apply(weights_init)
     if checkpoint_g_path:
         gen_state, gen_opt_state = torch.load(checkpoint_g_path)
         gen.load_state_dict(gen_state)
@@ -379,18 +379,18 @@ if __name__ == '__main__':
     #best_trained_model = Net(best_trial.config["l1"], best_trial.config["l2"])
     #train
     """
-	start_train = time.time()
-	loss_f = open("loss.txt", "a")
-	train(gen, disc, dataloader, loss_f)
-	loss_f.close()
-	end_train = time.time()
-	# save
-	torch.save(gen.state_dict(), PATH_G)
-	torch.save(disc.state_dict(), PATH_D)
-	end = time.time()
-	seconds = (end - start)
-	seconds_train = (end_train - start_train)
-	print(f"Total elapsed time: {seconds:.2f} seconds, \
-	 Train {n_epochs} epochs {seconds_train:.2f} seconds") 
+    start_train = time.time()
+    loss_f = open("loss.txt", "a")
+    train(gen, disc, dataloader, loss_f)
+    loss_f.close()
+    end_train = time.time()
+    # save
+    torch.save(gen.state_dict(), PATH_G)
+    torch.save(disc.state_dict(), PATH_D)
+    end = time.time()
+    seconds = (end - start)
+    seconds_train = (end_train - start_train)
+    print(f"Total elapsed time: {seconds:.2f} seconds, \
+     Train {n_epochs} epochs {seconds_train:.2f} seconds") 
     """
     print("finished.")

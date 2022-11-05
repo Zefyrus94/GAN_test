@@ -214,9 +214,9 @@ def train(config):
     generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
     gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
     #https://discuss.pytorch.org/t/syntax-error-on-ray-ray-tune-not-supported-between-instances-of-float-and-float/144693
-    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"].sample())#=lr
+    gen_opt = torch.optim.Adam(gen.parameters(), lr=config["lr_g"])#=lr#.sample()
     disc = Discriminator(im_chan=discriminator_im_chan, hidden_dim=config["hidden_dim"]).to(device)
-    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"].sample())#=lr
+    disc_opt = torch.optim.Adam(disc.parameters(), lr=config["lr_d"])#=lr#.sample()
     gen = gen.apply(weights_init)
     disc = disc.apply(weights_init)
     checkpoint_g_path = None

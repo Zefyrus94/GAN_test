@@ -208,7 +208,8 @@ def weights_init(m):
         torch.nn.init.normal_(m.weight, 0.0, 0.02)
         torch.nn.init.constant_(m.bias, 0)
 def train(config):
-    #
+    #https://discuss.ray.io/t/runtimeerror-no-cuda-gpus-are-available/1787
+    assert torch.cuda.is_available()
     dataloader = create_data_loader_mnist()
     generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
     gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
@@ -372,6 +373,7 @@ if __name__ == '__main__':
     result = tune.run(
         #partial(train_cifar, data_dir=data_dir),
         train,
+        max_failures=100, # set this to a large value, 100 works in my case
         #resources_per_trial={"cpu": 2, "gpu": gpus_per_trial},
         config=config,
         num_samples=10,#num_samples,

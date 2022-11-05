@@ -241,13 +241,14 @@ def frechet_distance(mu_x, mu_y, sigma_x, sigma_y):
     return (mu_x - mu_y).dot(mu_x - mu_y) + torch.trace(sigma_x) + torch.trace(sigma_y) - 2 * torch.trace(matrix_sqrt(sigma_x @ sigma_y))
 def get_covariance(features):
     return torch.Tensor(np.cov(features.detach().numpy(), rowvar=False))  
-def get_fid():
+def get_fid(gen):
     #image_size = 299
     device = 'cuda'
     dataloader = create_data_loader_mnist()
     fake_features_list = []
     real_features_list = []
-    gen.eval()#for inference
+    gen_copy = copy.deepcopy(gen)
+    gen_copy.eval()#for inference
     n_samples = 512 # The total number of samples
     batch_size = 4 # Samples per iteration
     cur_samples = 0
@@ -433,7 +434,7 @@ def train(config):
             #    path = os.path.join(checkpoint_dir, "checkpoint")
             #    torch.save((net.state_dict(), optimizer.state_dict()), path)
             #prove fid
-            fid = get_fid()#randrange(10)
+            fid = get_fid(gen)#randrange(10)
             tune.report(fid=fid, loss_d=(running_loss_d / num_of_batches), loss_g=(running_loss_g / num_of_batches))
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")

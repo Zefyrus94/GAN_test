@@ -636,7 +636,7 @@ if __name__ == '__main__':
         max_failures=1,#0, # set this to a large value, 100 works in my case
         resources_per_trial={"cpu": 2, "gpu": 1},#o non vede la gpu (cuda.device)
         config=config,
-        num_samples=3,#num_samples,#il numero di permutazioni/tentativi che farò
+        num_samples=16,#3#num_samples,#il numero di permutazioni/tentativi che farò
         scheduler=scheduler,
         progress_reporter=reporter)
 

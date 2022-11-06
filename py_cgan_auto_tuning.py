@@ -253,7 +253,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 2#200
+n_epochs = 20#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -583,7 +583,7 @@ if __name__ == '__main__':
     #search space
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
-        "hidden_dim": tune.sample_from(lambda _: 2**np.random.randint(2, 9)),#64,#
+        "hidden_dim": tune.sample_from(lambda _: 2**np.random.randint(6, 9)),#64,#64=>512
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }

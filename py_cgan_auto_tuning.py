@@ -253,7 +253,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 2#200
+n_epochs = 100#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -602,6 +602,7 @@ ray.exceptions.RayTaskError(ValueError): ray::ImplicitFunc.train() (pid=2270450,
     raise ValueError("batch_size should be a positive integer value, "
 ValueError: batch_size should be a positive integer value, but got batch_size=<ray.tune.search.sample.Categorical object at 0x7f809c36fc10>
 """
+#https://www.analyticsvidhya.com/blog/2021/05/tuning-the-hyperparameters-and-layers-of-neural-network-deep-learning/
 if __name__ == '__main__':
     start = time.time()
     PATH_D = './mnist_disc.pth'

@@ -222,6 +222,20 @@ def preprocess(img):
     #img.unsqueeze(0)
     img = torch.nn.functional.interpolate(img, size=(299, 299), mode='bilinear', align_corners=False)
     return img
+def get_vae_encoder():
+    #inception_zip_path = "inception_v3_google-1a9a5a14.zip"
+    #with zipfile.ZipFile(inception_zip_path, 'r') as zip_ref:
+    #    zip_ref.extractall('.')
+    vae_path = "vae_model.pth"
+    state_dict = torch.load(vae_path)
+    vae_fid = VariationalAutoencoder()
+    vae_fid.load_state_dict(torch.load(vae_path))
+    vae_fid.to(device)
+    encoder = vae_fid.encoder
+    encoder = encoder.eval()
+    encoder.fc_mu = torch.nn.Identity()
+    #encoder.fc_logvar = torch.nn.Identity()
+    return encoder
 def get_inception_model():
     #inception_v3_google-1a9a5a14.pth
     #TUNE_ORIG_WORKING_DIR
@@ -247,6 +261,17 @@ def frechet_distance(mu_x, mu_y, sigma_x, sigma_y):
     return (mu_x - mu_y).dot(mu_x - mu_y) + torch.trace(sigma_x) + torch.trace(sigma_y) - 2 * torch.trace(matrix_sqrt(sigma_x @ sigma_y))
 def get_covariance(features):
     return torch.Tensor(np.cov(features.detach().numpy(), rowvar=False))  
+"""
+NOTE SULLA FID
+https://wandb.ai/ayush-thakur/gan-evaluation/reports/How-to-Evaluate-GANs-using-Frechet-Inception-Distance-FID---Vmlldzo0MTAxOTI
+Observations
+    The FID score decreases with the better model checkpoint. One can pick a model checkpoint that generates a low FID score for inference.
+    The FID score is relatively high because the Inception model is trained on Imagenet which constitutes natural images while our GAN is trained on the FashionMNIST dataset.
+Shortcomings of FID
+    It uses a pre-trained Inception model, which may not capture all features. This can result in a high FID score as in the above case.
+    It needs a large sample size. The minimum recommended sample size is 10,000. For a high-resolution image(say 512x512 pixels) this can be computationally expensive and slow to run.
+    Limited statistics(mean and covariance) are used to compute the FID score.
+"""
 def get_fid(gen):
     #image_size = 299
     device = 'cuda'
@@ -258,8 +283,8 @@ def get_fid(gen):
     n_samples = 512 # The total number of samples
     batch_size = 4 # Samples per iteration
     cur_samples = 0
-    print("Recupero il modello InceptionV3...")
-    inception_model = get_inception_model()
+    print("Recupero l'encoder del VAE...")
+    encoder_fid = get_vae_encoder()
     print("Valutazione in corso...")
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
         try:
@@ -269,8 +294,9 @@ def get_fid(gen):
                 cur_batch_size = len(real_example)
                 real_samples = real_example
                 print("chiamo inception model...")
-                real_features = inception_model(real_samples.to(device)).detach().to('cpu') # Move features to CPU
-                print("chiamata conclusa a inception model...")
+                #[0] perché restituisce mu, log_var
+                real_features = encoder_fid(real_samples.to(device))[0].detach().to('cpu') # Move features to CPU
+                print("chiamata conclusa a vae model...")
                 print("real_features",real_features)
                 real_features_list.append(real_features)
                 #print("len real_example",len(real_example))
@@ -283,9 +309,10 @@ def get_fid(gen):
                 fake_samples = gen(fake_samples)
                 print("generated",fake_samples.shape)
                 print("preprocess fake....")
-                fake_samples = preprocess(fake_samples)
+                #niente preprocessing fake(1,28,28), real (1,28,28), input vae (1,28,28), tutto ok
+                #fake_samples = preprocess(fake_samples)
                 print("shape fake_samples",fake_samples.shape)
-                fake_features = inception_model(fake_samples.to(device)).detach().to('cpu')
+                fake_features = encoder_fid(fake_samples.to(device))[0].detach().to('cpu')
                 #print("shape fake_features",fake_features.shape)
                 fake_features_list.append(fake_features)
                 cur_samples += len(real_samples)

@@ -253,7 +253,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 1#200
+n_epochs = 20#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -419,7 +419,7 @@ def get_fid(gen):
     sigma_real = get_covariance(real_features_all)
     with torch.no_grad():
         fid = frechet_distance(mu_real, mu_fake, sigma_real, sigma_fake).item()
-        print("La FID è: ",fid)
+        #print("La FID è: ",fid)
         return fid
 ###FINE FID
 def train(config):

@@ -253,7 +253,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 2#200
+n_epochs = 1#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -371,35 +371,35 @@ def get_fid(gen):
     n_samples = 512 # The total number of samples
     batch_size = 4 # Samples per iteration
     cur_samples = 0
-    print("Recupero l'encoder del VAE...")
+    #print("Recupero l'encoder del VAE...")
     encoder_fid = get_vae_encoder()
-    print("Valutazione in corso...")
+    #print("Valutazione in corso...")
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
         try:
             for real_example, labels in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
                 #!nvidia-smi
-                print("real...")
+                #print("real...")
                 cur_batch_size = len(real_example)
                 real_samples = real_example
-                print("chiamo inception model...")
+                #print("chiamo inception model...")
                 #[0] perché restituisce mu, log_var
                 real_features = encoder_fid(real_samples.to(device))[0].detach().to('cpu') # Move features to CPU
-                print("chiamata conclusa a vae model...")
-                print("real_features",real_features)
+                #print("chiamata conclusa a vae model...")
+                #print("real_features",real_features)
                 real_features_list.append(real_features)
                 #print("len real_example",len(real_example))
                 #print("z_dim",z_dim)
-                print("fake...")
+                #print("fake...")
                 fake_samples = get_noise(cur_batch_size, z_dim).to(device)
                 one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
                 fake_samples = combine_vectors(fake_samples,one_hot_labels)
                 #print("shape fake_samples",fake_samples.shape)
                 fake_samples = gen(fake_samples)
-                print("generated",fake_samples.shape)
-                print("preprocess fake....")
+                #print("generated",fake_samples.shape)
+                #print("preprocess fake....")
                 #niente preprocessing fake(1,28,28), real (1,28,28), input vae (1,28,28), tutto ok
                 #fake_samples = preprocess(fake_samples)
-                print("shape fake_samples",fake_samples.shape)
+                #print("shape fake_samples",fake_samples.shape)
                 fake_features = encoder_fid(fake_samples.to(device))[0].detach().to('cpu')
                 #print("shape fake_features",fake_features.shape)
                 fake_features_list.append(fake_features)
@@ -418,7 +418,9 @@ def get_fid(gen):
     sigma_fake = get_covariance(fake_features_all)
     sigma_real = get_covariance(real_features_all)
     with torch.no_grad():
-        print("La FID per 5000 dati campione è: ",frechet_distance(mu_real, mu_fake, sigma_real, sigma_fake).item())
+        fid = frechet_distance(mu_real, mu_fake, sigma_real, sigma_fake).item()
+        print("La FID è: ",fid)
+        return fid
 ###FINE FID
 def train(config):
     #https://discuss.ray.io/t/runtimeerror-no-cuda-gpus-are-available/1787

@@ -25,6 +25,7 @@ import copy
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
 print("cuda available?",torch.cuda.is_available())
 ####per la valutazione: VAE...
+#https://colab.research.google.com/github/smartgeometry-ucl/dl4g/blob/master/variational_autoencoder.ipynb#scrollTo=yOzgLfh3bwtR
 """
 Encoder(
   (conv1): Conv2d(1, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))

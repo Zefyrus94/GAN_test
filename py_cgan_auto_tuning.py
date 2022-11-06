@@ -253,7 +253,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 20#200
+n_epochs = 2#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -560,11 +560,20 @@ def train(config):
             #    path = os.path.join(checkpoint_dir, "checkpoint")
             #    torch.save((net.state_dict(), optimizer.state_dict()), path)
             #prove fid
+            """
+            #sposto il reporting fuori, così lo faccio per n_epochs
             fid = get_fid(gen)#randrange(10)#
-            tune.report(fid=fid, loss_d=(running_loss_d / num_of_batches), loss_g=(running_loss_g / num_of_batches))
+            loss_d = (running_loss_d / num_of_batches)
+            loss_g = (running_loss_g / num_of_batches)
+            tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
+            """
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
         loss_f.close()
+    fid = get_fid(gen)#randrange(10)#
+    loss_d = (running_loss_d / num_of_batches)
+    loss_g = (running_loss_g / num_of_batches)
+    tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
 #main
 if __name__ == '__main__':
     start = time.time()

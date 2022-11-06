@@ -582,7 +582,7 @@ if __name__ == '__main__':
     #search space
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
-        "hidden_dim": 64,#tune.sample_from(lambda _: 2**np.random.randint(2, 9)),
+        "hidden_dim": tune.sample_from(lambda _: 2**np.random.randint(2, 9)),#64,#
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }
@@ -604,17 +604,18 @@ if __name__ == '__main__':
     result = tune.run(
         #partial(train_cifar, data_dir=data_dir),
         train,
-        max_failures=10,#0, # set this to a large value, 100 works in my case
+        max_failures=1,#0, # set this to a large value, 100 works in my case
         resources_per_trial={"cpu": 2, "gpu": 1},#o non vede la gpu (cuda.device)
         config=config,
-        num_samples=10,#num_samples,
+        num_samples=3,#num_samples,#il numero di permutazioni/tentativi che farò
         scheduler=scheduler,
         progress_reporter=reporter)
 
     best_trial = result.get_best_trial("fid", "min", "last")#loss_g
     print("Best trial config: {}".format(best_trial.config))
     print("Best trial final fid: {}".format(best_trial.last_result["fid"]))
-    best_trial_f = open("best_trial.txt", "a")
+    randnum = randrange(1000)
+    best_trial_f = open(f"best_trial_{randnum}.txt", "a")
     best_trial_f.write("Best trial config: {}".format(best_trial.config))
     best_trial_f.write("Best trial final fid: {}".format(best_trial.last_result["fid"]))
     best_trial_f.close()

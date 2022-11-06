@@ -9,6 +9,8 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import time
 #https://pytorch.org/tutorials/beginner/hyperparameter_tuning_tutorial.html
+#faster tune
+#https://medium.com/rapids-ai/30x-faster-hyperparameter-search-with-raytune-and-rapids-403013fbefc5
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
@@ -253,7 +255,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 100#200
+n_epochs = 200#100#
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -613,7 +615,8 @@ if __name__ == '__main__':
         "hidden_dim": tune.sample_from(lambda _: 2**np.random.randint(6, 9)),#64,#64=>512
         "batch_size": tune.sample_from(lambda _: 2**np.random.randint(5, 8)),#tune.choice([32,64,128,256]),
         "lr_g": tune.loguniform(1e-4, 1e-1),
-        "lr_d": tune.loguniform(1e-4, 1e-1)
+        "lr_d": tune.loguniform(1e-4, 1e-1)#,
+        #"activation": tune.choice(["relu", "tanh"])
     }
     ##
     scheduler = ASHAScheduler(
@@ -639,7 +642,7 @@ if __name__ == '__main__':
         num_samples=16,#3#num_samples,#il numero di permutazioni/tentativi che farò
         scheduler=scheduler,
         progress_reporter=reporter)
-
+    #result = tune.run(my_trainable, config=config, scheduler=bohb, search_alg=algo)
     best_trial = result.get_best_trial("fid", "min", "last")#loss_g
     print("Best trial config: {}".format(best_trial.config))
     print("Best trial final fid: {}".format(best_trial.last_result["fid"]))

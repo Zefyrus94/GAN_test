@@ -253,7 +253,7 @@ def combine_vectors(x, y):
 mnist_shape = (1, 28, 28)
 n_classes = 10
 criterion = nn.BCEWithLogitsLoss()
-n_epochs = 20#200
+n_epochs = 2#200
 z_dim = 64
 display_step = 500
 batch_size = 128
@@ -297,7 +297,7 @@ def create_data_loader_mnist():
     #batch_size = 256
     mnist_data = MNIST(root='./data', download=True, transform=transform)
     #num_workers=16, pin_memory=True
-    dataloader = DataLoader(mnist_data, batch_size=batch_size,shuffle=True,num_workers=16)
+    dataloader = DataLoader(mnist_data, batch_size=config["batch_size"],shuffle=True,num_workers=16)
     return dataloader
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -584,6 +584,7 @@ if __name__ == '__main__':
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
         "hidden_dim": tune.sample_from(lambda _: 2**np.random.randint(6, 9)),#64,#64=>512
+        "batch_size": tune.choice([64,128,256]),
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }

@@ -51,6 +51,13 @@ Params size (MB): 0.50
 Estimated Total Size (MB): 0.75
 ----------------------------------------------------------------
 """
+latent_dims = 2
+#num_epochs = 100
+#batch_size = 128
+capacity = 64
+#learning_rate = 1e-3
+#variational_beta = 1
+#use_gpu = True
 class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()

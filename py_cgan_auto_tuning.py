@@ -289,7 +289,7 @@ def get_input_dimensions(z_dim, mnist_shape, n_classes):
     discriminator_im_chan = mnist_shape[0] + n_classes
     #### END CODE HERE ####
     return generator_input_dim, discriminator_im_chan
-def create_data_loader_mnist():
+def create_data_loader_mnist(batch_size):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,)),
@@ -297,7 +297,7 @@ def create_data_loader_mnist():
     #batch_size = 256
     mnist_data = MNIST(root='./data', download=True, transform=transform)
     #num_workers=16, pin_memory=True
-    dataloader = DataLoader(mnist_data, batch_size=config["batch_size"].sample(),shuffle=True,num_workers=16)
+    dataloader = DataLoader(mnist_data, batch_size=batch_size,shuffle=True,num_workers=16)
     return dataloader
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -360,10 +360,10 @@ Shortcomings of FID
     It needs a large sample size. The minimum recommended sample size is 10,000. For a high-resolution image(say 512x512 pixels) this can be computationally expensive and slow to run.
     Limited statistics(mean and covariance) are used to compute the FID score.
 """
-def get_fid(gen):
+def get_fid(gen,batch_size):
     #image_size = 299
     device = 'cuda'
-    dataloader = create_data_loader_mnist()
+    dataloader = create_data_loader_mnist(batch_size)
     fake_features_list = []
     real_features_list = []
     gen_copy = copy.deepcopy(gen)
@@ -425,7 +425,8 @@ def get_fid(gen):
 def train(config):
     #https://discuss.ray.io/t/runtimeerror-no-cuda-gpus-are-available/1787
     assert torch.cuda.is_available()
-    dataloader = create_data_loader_mnist()
+    batch_size = config["batch_size"]#.sample()#spostato
+    dataloader = create_data_loader_mnist(batch_size)
     generator_input_dim, discriminator_im_chan = get_input_dimensions(z_dim, mnist_shape, n_classes)
     gen = Generator(input_dim=generator_input_dim, hidden_dim=config["hidden_dim"]).to(device)
     #https://discuss.pytorch.org/t/syntax-error-on-ray-ray-tune-not-supported-between-instances-of-float-and-float/144693
@@ -562,7 +563,7 @@ def train(config):
             #prove fid
             """
             #sposto il reporting fuori, così lo faccio per n_epochs
-            fid = get_fid(gen)#randrange(10)#
+            fid = get_fid(gen,batch_size)#randrange(10)#
             loss_d = (running_loss_d / num_of_batches)
             loss_g = (running_loss_g / num_of_batches)
             tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
@@ -571,7 +572,7 @@ def train(config):
         loss_f = open("loss.txt", "a")
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
         loss_f.close()
-    fid = get_fid(gen)#randrange(10)#
+    fid = get_fid(gen,batch_size)#randrange(10)#
     loss_d = (running_loss_d / num_of_batches)
     loss_g = (running_loss_g / num_of_batches)
     tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)

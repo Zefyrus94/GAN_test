@@ -605,6 +605,10 @@ if __name__ == '__main__':
     best_trial = result.get_best_trial("fid", "min", "last")#loss_g
     print("Best trial config: {}".format(best_trial.config))
     print("Best trial final fid: {}".format(best_trial.last_result["fid"]))
+    best_trial_f = open("best_trial.txt", "a")
+    best_trial_f.write("Best trial config: {}".format(best_trial.config))
+    best_trial_f.write("Best trial final fid: {}".format(best_trial.last_result["fid"]))
+    best_trial_f.close()
     #print("Best trial final validation accuracy: {}".format(
     #    best_trial.last_result["accuracy"]))
     #best_trained_model = Net(best_trial.config["l1"], best_trial.config["l2"])

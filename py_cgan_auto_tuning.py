@@ -551,7 +551,7 @@ def train(config):
             #    path = os.path.join(checkpoint_dir, "checkpoint")
             #    torch.save((net.state_dict(), optimizer.state_dict()), path)
             #prove fid
-            fid = randrange(10)#get_fid(gen)#
+            fid = get_fid(gen)#randrange(10)#
             tune.report(fid=fid, loss_d=(running_loss_d / num_of_batches), loss_g=(running_loss_g / num_of_batches))
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")

@@ -297,7 +297,7 @@ def create_data_loader_mnist():
     #batch_size = 256
     mnist_data = MNIST(root='./data', download=True, transform=transform)
     #num_workers=16, pin_memory=True
-    dataloader = DataLoader(mnist_data, batch_size=config["batch_size"],shuffle=True,num_workers=16)
+    dataloader = DataLoader(mnist_data, batch_size=config["batch_size"].sample(),shuffle=True,num_workers=16)
     return dataloader
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):

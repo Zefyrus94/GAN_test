@@ -576,6 +576,31 @@ def train(config):
     loss_g = (running_loss_g / num_of_batches)
     tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
 #main
+"""
+2022-11-06 16:06:53,770 ERROR trial_runner.py:987 -- Trial train_9f698_00001: Error processing event.
+ray.exceptions.RayTaskError(ValueError): ray::ImplicitFunc.train() (pid=2270450, ip=193.204.161.50, repr=train)
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/ray/tune/trainable/trainable.py", line 349, in train
+    result = self.step()
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 417, in step
+    self._report_thread_runner_error(block=True)
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 589, in _report_thread_runner_error
+    raise e
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 289, in run
+    self._entrypoint()
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 362, in entrypoint
+    return self._trainable_func(
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/ray/tune/trainable/function_trainable.py", line 684, in _trainable_func
+    output = fn()
+  File "/home/nvidia/workspace/giacomobonanni/GAN_test/py_cgan_auto_tuning.py", line 428, in train
+    dataloader = create_data_loader_mnist()
+  File "/home/nvidia/workspace/giacomobonanni/GAN_test/py_cgan_auto_tuning.py", line 300, in create_data_loader_mnist
+    dataloader = DataLoader(mnist_data, batch_size=config["batch_size"],shuffle=True,num_workers=16)
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 350, in __init__
+    batch_sampler = BatchSampler(sampler, batch_size, drop_last)
+  File "/home/nvidia/anaconda3/envs/pytorch1.13/lib/python3.9/site-packages/torch/utils/data/sampler.py", line 232, in __init__
+    raise ValueError("batch_size should be a positive integer value, "
+ValueError: batch_size should be a positive integer value, but got batch_size=<ray.tune.search.sample.Categorical object at 0x7f809c36fc10>
+"""
 if __name__ == '__main__':
     start = time.time()
     PATH_D = './mnist_disc.pth'
@@ -584,7 +609,7 @@ if __name__ == '__main__':
     #,"batch_size": tune.choice([2, 4, 8, 16])
     config = {
         "hidden_dim": tune.sample_from(lambda _: 2**np.random.randint(6, 9)),#64,#64=>512
-        "batch_size": tune.choice([64,128,256]),
+        "batch_size": tune.sample_from(lambda _: 2**np.random.randint(5, 8)),#tune.choice([32,64,128,256]),
         "lr_g": tune.loguniform(1e-4, 1e-1),
         "lr_d": tune.loguniform(1e-4, 1e-1)
     }

@@ -23,7 +23,7 @@ import numpy as np
 #clone modello
 import copy
 torch.manual_seed(0) # Set for our testing purposes, please do not change!
-print("cuda available?",torch.cuda.is_available())
+#print("cuda available?",torch.cuda.is_available())
 ####per la valutazione: VAE...
 #https://colab.research.google.com/github/smartgeometry-ucl/dl4g/blob/master/variational_autoencoder.ipynb#scrollTo=yOzgLfh3bwtR
 """
@@ -443,7 +443,7 @@ def train(config):
         disc.load_state_dict(disc_state)
         disc_opt.load_state_dict(disc_opt_state)
     ##
-    loss_f = open("loss.txt", "a")
+    #loss_f = open("loss.txt", "a")
     # UNQ_C4 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
     # GRADED CELL
     cur_step = 0
@@ -568,6 +568,7 @@ def train(config):
             tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
             """
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
+        loss_f = open("loss.txt", "a")
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
         loss_f.close()
     fid = get_fid(gen)#randrange(10)#

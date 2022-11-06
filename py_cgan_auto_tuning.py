@@ -307,7 +307,7 @@ def get_vae_encoder():
     #inception_zip_path = "inception_v3_google-1a9a5a14.zip"
     #with zipfile.ZipFile(inception_zip_path, 'r') as zip_ref:
     #    zip_ref.extractall('.')
-    vae_path = "vae_model.pth"
+    vae_path = "/home/nvidia/workspace/giacomobonanni/GAN_test/vae_model.pth"
     state_dict = torch.load(vae_path)
     vae_fid = VariationalAutoencoder()
     vae_fid.load_state_dict(torch.load(vae_path))

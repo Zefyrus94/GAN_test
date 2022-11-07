@@ -100,7 +100,7 @@ def launch():
     args.batch_size = 12
     args.image_size = 64
     args.dataset_path = 'data'#r"C:\Users\dome\datasets\landscape_img_folder"
-    args.device = "cuda"
+    args.device = "cuda:1"
     args.lr = 3e-4
     train(args)
 

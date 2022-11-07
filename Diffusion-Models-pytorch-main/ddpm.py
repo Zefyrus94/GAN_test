@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=256, device="cuda"):
+    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=256, device="cuda:1"):#cuda => cuda:1
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
@@ -78,8 +78,8 @@ def train(args):
             x_t, noise = diffusion.noise_images(images, t)
             x_t = x_t.to(device)#n
             noise = noise.to(device)#n
-            print("x_t dev: ",x_t.device.index)
-            print("t dev: ",t.device.index)
+            #print("x_t dev: ",x_t.device.index)
+            #print("t dev: ",t.device.index)
             predicted_noise = model(x_t, t)
             loss = mse(noise, predicted_noise)
 

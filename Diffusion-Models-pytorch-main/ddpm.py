@@ -78,7 +78,8 @@ def train(args):
             x_t, noise = diffusion.noise_images(images, t)
             x_t = x_t.to(device)#n
             noise = noise.to(device)#n
-            print(device)
+            print("x_t dev: ",x_t.device.index)
+            print("t dev: ",t.device.index)
             predicted_noise = model(x_t, t)
             loss = mse(noise, predicted_noise)
 

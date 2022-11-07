@@ -620,7 +620,7 @@ if __name__ == '__main__':
     }
     ##
     scheduler = ASHAScheduler(
-        metric="loss_g",
+        metric="fid",#loss_g
         mode="min",
         max_t=n_epochs,#max_num_epochs
         grace_period=1,

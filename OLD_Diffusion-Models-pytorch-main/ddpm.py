@@ -59,7 +59,7 @@ class Diffusion:
 
 
 def train(args):
-    setup_logging(args.run_name)
+    #setup_logging(args.run_name)
     device = args.device
     dataloader = get_data(args)
     model = UNet().to(device)
@@ -99,13 +99,19 @@ def launch():
     args.epochs = 500
     args.batch_size = 12
     args.image_size = 64
-    args.dataset_path = r"C:\Users\dome\datasets\landscape_img_folder"
+    args.dataset_path = "data"#r"C:\Users\dome\datasets\landscape_img_folder"
     args.device = "cuda"
     args.lr = 3e-4
     train(args)
 
-
+def download_data():
+    import requests, zipfile, io
+    zip_file_url = 'https://www.kaggle.com/datasets/arnaud58/landscape-pictures/download?datasetVersionNumber=2'
+    r = requests.get(zip_file_url)
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    z.extractall("data")
 if __name__ == '__main__':
+    #download_data()
     launch()
     # device = "cuda"
     # model = UNet().to(device)

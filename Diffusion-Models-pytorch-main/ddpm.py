@@ -59,7 +59,7 @@ class Diffusion:
 
 
 def train(args):
-    setup_logging(args.run_name)
+    #setup_logging(args.run_name)
     device = args.device
     dataloader = get_data(args)
     model = UNet().to(device)
@@ -111,7 +111,7 @@ def download_data():
     z = zipfile.ZipFile(io.BytesIO(r.content))
     z.extractall("data")
 if __name__ == '__main__':
-    download_data()
+    #download_data()
     launch()
     # device = "cuda"
     # model = UNet().to(device)

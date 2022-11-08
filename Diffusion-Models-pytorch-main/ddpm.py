@@ -63,6 +63,8 @@ def train(args):
     device = args.device
     dataloader = get_data(args)
     model = UNet().to(device)
+    start_epoch = 1#agg
+    start_epoch = 278#agg
     ckpt = torch.load("./models/DDPM_Uncondtional/ckpt.pt")#agg
     #print(ckpt)
     #exit()
@@ -76,7 +78,7 @@ def train(args):
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
 
-    for epoch in range(args.epochs):
+    for epoch in range(start_epoch,args.epochs):
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, _) in enumerate(pbar):

@@ -64,14 +64,14 @@ def train(args):
     dataloader = get_data(args)
     model = UNet().to(device)
     start_epoch = 1#agg
-    start_epoch = 278#agg
+    #start_epoch = 278#agg
+    """
     ckpt = torch.load("./models/DDPM_Uncondtional/ckpt.pt")#agg
-    #print(ckpt)
-    #exit()
     model.load_state_dict(ckpt)#.state_dict()
+    """
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     # (manca lo state dell'optimizer)
-    model.train()#agg
+    #model.train()#agg
 
     mse = nn.MSELoss()
     diffusion = Diffusion(img_size=args.image_size, device=device)

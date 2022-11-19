@@ -115,14 +115,6 @@ class VariationalAutoencoder(nn.Module):
 
 ####fine vae
 class Generator(nn.Module):
-    '''
-    Generator Class
-    Values:
-        input_dim: the dimension of the input vector, a scalar
-        im_chan: the number of channels in the images, fitted for the dataset used, a scalar
-              (MNIST is black-and-white, so 1 channel is your default)
-        hidden_dim: the inner dimension, a scalar
-    '''
     def __init__(self, input_dim=10, im_chan=1, hidden_dim=64):
         super(Generator, self).__init__()
         self.input_dim = input_dim
@@ -134,17 +126,6 @@ class Generator(nn.Module):
             self.make_gen_block(hidden_dim, im_chan, kernel_size=4, final_layer=True),
         )
     def make_gen_block(self, input_channels, output_channels, kernel_size=3, stride=2, final_layer=False):
-        '''
-        Function to return a sequence of operations corresponding to a generator block of DCGAN;
-        a transposed convolution, a batchnorm (except in the final layer), and an activation.
-        Parameters:
-            input_channels: how many channels the input feature representation has
-            output_channels: how many channels the output feature representation should have
-            kernel_size: the size of each convolutional filter, equivalent to (kernel_size, kernel_size)
-            stride: the stride of the convolution
-            final_layer: a boolean, true if it is the final layer and false otherwise 
-                      (affects activation and batchnorm)
-        '''
         if not final_layer:
             return nn.Sequential(
                 nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
@@ -157,32 +138,11 @@ class Generator(nn.Module):
                 nn.Tanh(),
             )
     def forward(self, noise):
-        '''
-        Function for completing a forward pass of the generator: Given a noise tensor, 
-        returns generated images.
-        Parameters:
-            noise: a noise tensor with dimensions (n_samples, input_dim)
-        '''
         x = noise.view(len(noise), self.input_dim, 1, 1)
         return self.gen(x)
 def get_noise(n_samples, input_dim, device='cpu'):
-    '''
-    Function for creating noise vectors: Given the dimensions (n_samples, input_dim)
-    creates a tensor of that shape filled with random numbers from the normal distribution.
-    Parameters:
-        n_samples: the number of samples to generate, a scalar
-        input_dim: the dimension of the input vector, a scalar
-        device: the device type
-    '''
     return torch.randn(n_samples, input_dim, device=device)
 class Discriminator(nn.Module):
-    '''
-    Discriminator Class
-    Values:
-      im_chan: the number of channels in the images, fitted for the dataset used, a scalar
-            (MNIST is black-and-white, so 1 channel is your default)
-      hidden_dim: the inner dimension, a scalar
-    '''
     def __init__(self, im_chan=1, hidden_dim=64):
         super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
@@ -191,17 +151,6 @@ class Discriminator(nn.Module):
             self.make_disc_block(hidden_dim * 2, 1, final_layer=True),
         )
     def make_disc_block(self, input_channels, output_channels, kernel_size=4, stride=2, final_layer=False):
-        '''
-        Function to return a sequence of operations corresponding to a discriminator block of the DCGAN; 
-        a convolution, a batchnorm (except in the final layer), and an activation (except in the final layer).
-        Parameters:
-            input_channels: how many channels the input feature representation has
-            output_channels: how many channels the output feature representation should have
-            kernel_size: the size of each convolutional filter, equivalent to (kernel_size, kernel_size)
-            stride: the stride of the convolution
-            final_layer: a boolean, true if it is the final layer and false otherwise 
-                      (affects activation and batchnorm)
-        '''
         if not final_layer:
             return nn.Sequential(
                 nn.Conv2d(input_channels, output_channels, kernel_size, stride),
@@ -213,44 +162,13 @@ class Discriminator(nn.Module):
                 nn.Conv2d(input_channels, output_channels, kernel_size, stride),
             )
     def forward(self, image):
-        '''
-        Function for completing a forward pass of the discriminator: Given an image tensor, 
-        returns a 1-dimension tensor representing fake/real.
-        Parameters:
-            image: a flattened image tensor with dimension (im_chan)
-        '''
         disc_pred = self.disc(image)
         return disc_pred.view(len(disc_pred), -1)
-# UNQ_C1 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
-# GRADED FUNCTION: get_one_hot_labels
 import torch.nn.functional as F
 def get_one_hot_labels(labels, n_classes):
-    '''
-    Function for creating one-hot vectors for the labels, returns a tensor of shape (?, num_classes).
-    Parameters:
-        labels: tensor of labels from the dataloader, size (?)
-        n_classes: the total number of classes in the dataset, an integer scalar
-    '''
-    #### START CODE HERE ####
     return F.one_hot(labels, n_classes)
-    #### END CODE HERE ####
-# UNQ_C2 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
-# GRADED FUNCTION: combine_vectors
 def combine_vectors(x, y):
-    '''
-    Function for combining two vectors with shapes (n_samples, ?) and (n_samples, ?).
-    Parameters:
-      x: (n_samples, ?) the first vector. 
-        In this assignment, this will be the noise vector of shape (n_samples, z_dim), 
-        but you shouldn't need to know the second dimension's size.
-      y: (n_samples, ?) the second vector.
-        Once again, in this assignment this will be the one-hot class vector 
-        with the shape (n_samples, n_classes), but you shouldn't assume this in your code.
-    '''
-    # Note: Make sure this function outputs a float no matter what inputs it receives
-    #### START CODE HERE ####
     combined = torch.cat((x.float(), y.float()), 1)
-    #### END CODE HERE ####
     return combined
 mnist_shape = (1, 28, 28)
 n_classes = 10
@@ -269,27 +187,9 @@ dataloader = DataLoader(
     MNIST('.', download=True, transform=transform),
     batch_size=batch_size,
     shuffle=True)
-# UNQ_C3 (UNIQUE CELL IDENTIFIER, DO NOT EDIT)
-# GRADED FUNCTION: get_input_dimensions
 def get_input_dimensions(z_dim, mnist_shape, n_classes):
-    '''
-    Function for getting the size of the conditional input dimensions 
-    from z_dim, the image shape, and number of classes.
-    Parameters:
-        z_dim: the dimension of the noise vector, a scalar
-        mnist_shape: the shape of each MNIST image as (C, W, H), which is (1, 28, 28)
-        n_classes: the total number of classes in the dataset, an integer scalar
-                (10 for MNIST)
-    Returns: 
-        generator_input_dim: the input dimensionality of the conditional generator, 
-                          which takes the noise and class vectors
-        discriminator_im_chan: the number of input channels to the discriminator
-                            (e.g. C x 28 x 28 for MNIST)
-    '''
-    #### START CODE HERE ####
     generator_input_dim = z_dim + n_classes
     discriminator_im_chan = mnist_shape[0] + n_classes
-    #### END CODE HERE ####
     return generator_input_dim, discriminator_im_chan
 def create_data_loader_mnist(batch_size):
     transform = transforms.Compose([
@@ -570,14 +470,20 @@ def train(config):
             loss_g = (running_loss_g / num_of_batches)
             tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
             """
+        fid = get_fid(gen,batch_size)#randrange(10)#
+        loss_d = (running_loss_d / num_of_batches)
+        loss_g = (running_loss_g / num_of_batches)
+        tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g, epoch=epoch)
         print(f'[Epoch {epoch + 1}/{n_epochs}] loss d: {running_loss_d / num_of_batches:.3f}; loss g: {running_loss_g / num_of_batches:.3f}')
         loss_f = open("loss.txt", "a")
         loss_f.write(f"{running_loss_d / num_of_batches:.3f};{running_loss_g / num_of_batches:.3f}\n")
         loss_f.close()
+    """
     fid = get_fid(gen,batch_size)#randrange(10)#
     loss_d = (running_loss_d / num_of_batches)
     loss_g = (running_loss_g / num_of_batches)
     tune.report(fid=fid, loss_d=loss_d, loss_g=loss_g)
+    """
 #main
 """
 2022-11-06 16:06:53,770 ERROR trial_runner.py:987 -- Trial train_9f698_00001: Error processing event.
@@ -639,7 +545,7 @@ if __name__ == '__main__':
         max_failures=1,#0, # set this to a large value, 100 works in my case
         resources_per_trial={"cpu": 2, "gpu": 1},#o non vede la gpu (cuda.device)
         config=config,
-        num_samples=16,#3#num_samples,#il numero di permutazioni/tentativi che farò
+        num_samples=16,#3#num_samples,#il numero di trial che farò
         scheduler=scheduler,
         progress_reporter=reporter)
     #result = tune.run(my_trainable, config=config, scheduler=bohb, search_alg=algo)

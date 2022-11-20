@@ -5,9 +5,15 @@ from torchvision import transforms
 from torchvision.utils import make_grid
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+#
+import glob
+import random
+import os
+from torch.utils.data import Dataset
+from PIL import Image
 torch.manual_seed(0)
 
-def show_tensor_images(image_tensor, num_images=25, size=(1, 28, 28)):
+def show_tensor_images(image_tensor, num_images=25, size=(1, 28, 28), img_name=None):
     '''
     Function for visualizing images: Given a tensor of images, number of images, and
     size per image, plots and prints the images in an uniform grid.
@@ -16,15 +22,11 @@ def show_tensor_images(image_tensor, num_images=25, size=(1, 28, 28)):
     image_shifted = image_tensor
     image_unflat = image_shifted.detach().cpu().view(-1, *size)
     image_grid = make_grid(image_unflat[:num_images], nrow=5)
-    plt.imshow(image_grid.permute(1, 2, 0).squeeze())
-    plt.show()
-
-
-import glob
-import random
-import os
-from torch.utils.data import Dataset
-from PIL import Image
+    img_to_save = image_grid.permute(1, 2, 0).squeeze()
+    if img_name!= None:
+        plt.imsave(img_name, img_to_save)
+    #.imshow(image_grid.permute(1, 2, 0).squeeze())
+    #plt.show()
 
 # Inspired by https://github.com/aitorzip/PyTorch-CycleGAN/blob/master/datasets.py
 class ImageDataset(Dataset):
@@ -568,7 +570,8 @@ def train(save_model=False):
             if cur_step % display_step == 0:
                 print(f"Epoch {epoch}: Step {cur_step}: Generator (U-Net) loss: {mean_generator_loss}, Discriminator loss: {mean_discriminator_loss}")
                 show_tensor_images(torch.cat([real_A, real_B]), size=(dim_A, target_shape, target_shape))
-                show_tensor_images(torch.cat([fake_B, fake_A]), size=(dim_B, target_shape, target_shape))
+                img_name = 'res_cycle/ep_'+epoch+'.png'
+                show_tensor_images(torch.cat([fake_B, fake_A]), size=(dim_B, target_shape, target_shape),img_name=img_name)
                 mean_generator_loss = 0
                 mean_discriminator_loss = 0
                 # You can change save_model to True if you'd like to save the model

@@ -520,7 +520,7 @@ import numpy as np
 plt.rcParams["figure.figsize"] = (10, 10)
 
 
-def train(save_model=False):
+def train(save_model=True):
     mean_generator_loss = 0
     mean_discriminator_loss = 0
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)

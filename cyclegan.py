@@ -285,7 +285,7 @@ def weights_init(m):
         torch.nn.init.constant_(m.bias, 0)
 
 # Feel free to change pretrained to False if you're training the model from scratch
-pretrained = True
+pretrained = False#True
 if pretrained:
     pre_dict = torch.load('cycleGAN_100000.pth')
     gen_AB.load_state_dict(pre_dict['gen_AB'])

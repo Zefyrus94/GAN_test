@@ -249,7 +249,7 @@ import torch.nn.functional as F
 adv_criterion = nn.MSELoss() 
 recon_criterion = nn.L1Loss() 
 
-n_epochs = 20
+n_epochs = 200
 dim_A = 3
 dim_B = 3
 display_step = 200

@@ -570,7 +570,7 @@ def train(save_model=False):
             if cur_step % display_step == 0:
                 print(f"Epoch {epoch}: Step {cur_step}: Generator (U-Net) loss: {mean_generator_loss}, Discriminator loss: {mean_discriminator_loss}")
                 show_tensor_images(torch.cat([real_A, real_B]), size=(dim_A, target_shape, target_shape))
-                img_name = 'res_cycle/ep_'+epoch+'.png'
+                img_name = f'res_cycle/ep_{epoch}.png'
                 show_tensor_images(torch.cat([fake_B, fake_A]), size=(dim_B, target_shape, target_shape),img_name=img_name)
                 mean_generator_loss = 0
                 mean_discriminator_loss = 0

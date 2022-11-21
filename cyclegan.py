@@ -11,6 +11,8 @@ import random
 import os
 from torch.utils.data import Dataset
 from PIL import Image
+#filesize
+import os
 torch.manual_seed(0)
 
 def show_tensor_images(image_tensor, num_images=25, size=(1, 28, 28), img_name=None):
@@ -252,7 +254,7 @@ recon_criterion = nn.L1Loss()
 n_epochs = 200
 dim_A = 3
 dim_B = 3
-display_step = 200
+display_step = 1000
 batch_size = 1
 lr = 0.0002
 load_shape = 286
@@ -285,9 +287,9 @@ def weights_init(m):
         torch.nn.init.constant_(m.bias, 0)
 
 # Feel free to change pretrained to False if you're training the model from scratch
-pretrained = False#True
+pretrained = True#True
 if pretrained:
-    pre_dict = torch.load('cycleGAN_100000.pth')
+    pre_dict = torch.load('cycleGAN_ckpt.pth')#cycleGAN_100000
     gen_AB.load_state_dict(pre_dict['gen_AB'])
     gen_BA.load_state_dict(pre_dict['gen_BA'])
     gen_opt.load_state_dict(pre_dict['gen_opt'])
@@ -526,7 +528,7 @@ def train(save_model=True):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     cur_step = 0
 
-    for epoch in range(n_epochs):
+    for epoch in range(108,n_epochs):
         # Dataloader returns the batches
         # for image, _ in tqdm(dataloader):
         for real_A, real_B in tqdm(dataloader):
@@ -575,6 +577,9 @@ def train(save_model=True):
                 mean_generator_loss = 0
                 mean_discriminator_loss = 0
                 # You can change save_model to True if you'd like to save the model
+                space_taken = sum(os.path.getsize(f) for f in os.listdir('models') if os.path.isfile(f))/(1024*1024*1024)
+                if space_taken>20:#non più di 20 GB per questo script
+                    exit('Folder limit exceeded')
                 if save_model:
                     torch.save({
                         'gen_AB': gen_AB.state_dict(),
@@ -584,6 +589,6 @@ def train(save_model=True):
                         'disc_A_opt': disc_A_opt.state_dict(),
                         'disc_B': disc_B.state_dict(),
                         'disc_B_opt': disc_B_opt.state_dict()
-                    }, f"cycleGAN_{cur_step}.pth")
+                    }, f"models/cycleGAN_{cur_step}.pth")
             cur_step += 1
 train()

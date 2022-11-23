@@ -62,11 +62,11 @@ def train(args):
     setup_logging(args.run_name)
     device = args.device
     dataloader = get_data(args)
-    model = UNet(device=device)#.to(device)
+    model = UNet(device=device).to(device)#to(device) per i pesi della rete
     #####
     from torchsummary import summary
     device_sum = "cuda"#cuda:0
-    model_sum = UNet(device=device_sum)
+    model_sum = UNet(device=device_sum).to(device_sum)
     print("summary...")
     summary(model_sum, [(3, 64, 64),()])
     #####

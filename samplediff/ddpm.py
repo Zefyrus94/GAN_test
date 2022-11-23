@@ -65,7 +65,8 @@ def train(args):
     model = UNet().to(device)
 
     from torchsummary import summary
-    #summary(model, [(8, 3, 64, 64),(8,)])
+    print("summary...")
+    summary(model, [(8, 3, 64, 64),(8,)])
     start_epoch = 1#agg
     #start_epoch = 278#agg
     """

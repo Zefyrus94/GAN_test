@@ -27,8 +27,12 @@ def parse_tfrecord_tf(record):
 def parse_tfrecord_np(record):
     ex = tf.train.Example()
     ex.ParseFromString(record)
+    print(ex)
     shape = ex.features.feature['shape'].int64_list.value # temporary pylint workaround # pylint: disable=no-member
+    print("shape",shape)
     data = ex.features.feature['data'].bytes_list.value[0] # temporary pylint workaround # pylint: disable=no-member
+    print("data",data)
+    #shape = (3,64,64)
     return np.fromstring(data, np.uint8).reshape(shape)
 
 #----------------------------------------------------------------------------
@@ -65,14 +69,22 @@ class TFRecordDataset:
         self._tf_minibatch_np   = None
         self._cur_minibatch     = -1
         self._cur_lod           = -1
-
+        print("self.tfrecord_dir",self.tfrecord_dir)
         # List tfrecords files and inspect their shapes.
         assert os.path.isdir(self.tfrecord_dir)
+        #from os import listdir
+        #from os.path import isfile, join
+        #onlyfiles = [f for f in listdir(os.path.join(self.tfrecord_dir, '*.tfrecords'))]
+        #print("onlyfiles",onlyfiles)
+        #print("recs: ",os.path.join(self.tfrecord_dir, '*.tfrecords'))
+        #tfr_files = sorted(glob.glob(os.path.join(self.tfrecord_dir, '*.tfrecords')))
         tfr_files = sorted(glob.glob(os.path.join(self.tfrecord_dir, '*.tfrecords')))
+        print(tfr_files)
         assert len(tfr_files) >= 1
         tfr_shapes = []
         for tfr_file in tfr_files:
             tfr_opt = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.NONE)
+            print(tf.python_io.tf_record_iterator(tfr_file, tfr_opt))
             for record in tf.python_io.tf_record_iterator(tfr_file, tfr_opt):
                 tfr_shapes.append(parse_tfrecord_np(record).shape)
                 break
@@ -91,11 +103,17 @@ class TFRecordDataset:
         max_shape = max(tfr_shapes, key=np.prod)
         self.resolution = resolution if resolution is not None else max_shape[1]
         self.resolution_log2 = int(np.log2(self.resolution))
+        print("self.resolution_log2",self.resolution_log2)
         self.shape = [max_shape[0], self.resolution, self.resolution]
         tfr_lods = [self.resolution_log2 - int(np.log2(shape[1])) for shape in tfr_shapes]
+        for shape in tfr_shapes:
+            print("shape",shape)
         assert all(shape[0] == max_shape[0] for shape in tfr_shapes)
         assert all(shape[1] == shape[2] for shape in tfr_shapes)
         assert all(shape[1] == self.resolution // (2**lod) for shape, lod in zip(tfr_shapes, tfr_lods))
+        print("tfr_lods",tfr_lods)
+        for lod in range(self.resolution_log2 - 1):
+            print("lod",lod)
         assert all(lod in tfr_lods for lod in range(self.resolution_log2 - 1))
 
         # Load labels.

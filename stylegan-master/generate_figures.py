@@ -30,7 +30,9 @@ _Gs_cache = dict()
 
 def load_Gs(url):
     if url not in _Gs_cache:
-        with dnnlib.util.open_url(url, cache_dir=config.cache_dir) as f:
+        url = 'https://drive.google.com/uc?id=1MEGjdvVpUsu1jB4zrXZN7Y4kBBOzizDQ' # karras2019stylegan-ffhq-1024x1024.pkl
+        #with dnnlib.util.open_url(url, cache_dir=config.cache_dir) as f:
+        with open('karras2019stylegan-ffhq-1024x1024.pkl','rb') as f:#new
             _G, _D, Gs = pickle.load(f)
         _Gs_cache[url] = Gs
     return _Gs_cache[url]

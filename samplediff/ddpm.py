@@ -62,11 +62,14 @@ def train(args):
     setup_logging(args.run_name)
     device = args.device
     dataloader = get_data(args)
-    model = UNet().to(device)
-
+    model = UNet(device=device)#.to(device)
+    #####
     from torchsummary import summary
+    device_sum = "cuda:0"
+    model_sum = UNet(device=device_sum)
     print("summary...")
-    summary(model, [(3, 64, 64),()],device="cuda:1")
+    summary(model_sum, [(3, 64, 64),()])
+    #####
     start_epoch = 1#agg
     #start_epoch = 278#agg
     """

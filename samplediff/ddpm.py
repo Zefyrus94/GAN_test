@@ -68,7 +68,7 @@ def train(args):
     device_sum = "cuda"#cuda:0
     model_sum = UNet(device=device_sum).to(device_sum)
     print("summary...")
-    summary(model_sum, [(3, 64, 64),()])
+    summary(model_sum, [(3, 64, 64),])
     #####
     start_epoch = 1#agg
     #start_epoch = 278#agg

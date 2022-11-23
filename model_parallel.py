@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-
+print("model parallel example")
 class ToyModel(nn.Module):
     def __init__(self):
         super(ToyModel, self).__init__()
@@ -25,6 +25,9 @@ class ToyModel(nn.Module):
 
 
 model = ToyModel()
+from torchsummary import summary
+summary(model, (10))
+
 loss_fn = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001)
 

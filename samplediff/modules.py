@@ -168,11 +168,11 @@ class UNet(nn.Module):
         t = t.unsqueeze(-1).type(torch.float)
         t = self.pos_encoding(t, self.time_dim).to('cuda:1')
 
-        x1 = self.inc(x).to('cuda:2')
+        x1 = self.inc(x.to('cuda:2'))#1=>2=>2
         print("x2...")
-        x2 = self.down1(x1.to('cuda:1'), t)
-        x2 = self.sa1(x2)
-        x3 = self.down2(x2, t)
+        x2 = self.down1(x1, t.to('cuda:2'))#(2,1=>2)=>2
+        x2 = self.sa1(x2.to('cuda:3'))#2=>3=>3
+        x3 = self.down2(x2.to('cuda:1'), t)#3=>1=>1
         x3 = self.sa2(x3)
         x4 = self.down3(x3, t)
         x4 = self.sa3(x4)
@@ -183,9 +183,9 @@ class UNet(nn.Module):
 
         x = self.up1(x4, x3, t)
         x = self.sa4(x)
-        x = self.up2(x, x2, t)
+        x = self.up2(x, x2.to('cuda:1'), t)#(1,3=>1)=>1
         x = self.sa5(x)
-        x = self.up3(x, x1.to('cuda:1'), t)
+        x = self.up3(x, x1.to('cuda:1'), t)#(1,2=>1)=>1
         x = self.sa6(x)
         output = self.outc(x)
         print("end forward")

@@ -66,7 +66,7 @@ def train(args):
 
     from torchsummary import summary
     print("summary...")
-    summary(model, [(8, 3, 64, 64),(8,)])
+    summary(model, [(3, 64, 64),()])
     start_epoch = 1#agg
     #start_epoch = 278#agg
     """

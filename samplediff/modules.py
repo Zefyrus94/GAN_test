@@ -156,6 +156,7 @@ class UNet(nn.Module):
             ** (torch.arange(0, channels, 2, device=self.device).float() / channels)
         )
         #print("pos_encoding dev t",t.device.index," inv_freq,",inv_freq.device.index)
+        print("pos_encoding",t.shape)
         pos_enc_a = torch.sin(t.repeat(1, channels // 2) * inv_freq)
         pos_enc_b = torch.cos(t.repeat(1, channels // 2) * inv_freq)
         pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)

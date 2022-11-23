@@ -89,6 +89,7 @@ def train(args):
             noise = noise.to(device)#n
             #print("x_t dev: ",x_t.device.index)
             #print("t dev: ",t.device.index)
+            print("model input shapes",x_t.shape,x.shape)
             predicted_noise = model(x_t, t)
             loss = mse(noise, predicted_noise)
 
@@ -110,7 +111,7 @@ def launch():
     args = parser.parse_args()
     args.run_name = "DDPM_Uncondtional"
     args.epochs = 500
-    args.batch_size = 16
+    args.batch_size = 8#16
     args.image_size = 64
     args.dataset_path = 'data'#r"C:\Users\dome\datasets\landscape_img_folder"
     args.device = "cuda:1"

@@ -63,6 +63,9 @@ def train(args):
     device = args.device
     dataloader = get_data(args)
     model = UNet().to(device)
+
+    from torchsummary import summary
+    summary(model, ((8, 3, 64, 64),8))
     start_epoch = 1#agg
     #start_epoch = 278#agg
     """
@@ -85,8 +88,8 @@ def train(args):
             images = images.to(device)
             t = diffusion.sample_timesteps(images.shape[0]).to(device)
             x_t, noise = diffusion.noise_images(images, t)
-            x_t = x_t.to(device)#n
-            noise = noise.to(device)#n
+            #x_t = x_t.to(device)#n
+            #noise = noise.to(device)#n
             #print("x_t dev: ",x_t.device.index)
             #print("t dev: ",t.device.index)
             print("model input shapes",x_t.shape,t.shape)

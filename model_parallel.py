@@ -26,7 +26,7 @@ class ToyModel(nn.Module):
 
 model = ToyModel()
 from torchsummary import summary
-summary(model, (10))
+summary(model, (20,10))
 
 loss_fn = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.001)

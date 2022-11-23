@@ -73,6 +73,8 @@ class DoubleConv(nn.Module):
         if self.residual:
             return F.gelu(x + self.double_conv(x))
         else:
+            print("x dev",x.device)
+            print("double conv dev",self.double_conv.device)
             return self.double_conv(x)
 
 

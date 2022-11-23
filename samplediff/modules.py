@@ -164,6 +164,7 @@ class UNet(nn.Module):
         return pos_enc
 
     def forward(self, x, t):
+        print("forward",t)
         t = t.unsqueeze(-1).type(torch.float)
         t = self.pos_encoding(t, self.time_dim)
 

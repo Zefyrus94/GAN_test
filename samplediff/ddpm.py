@@ -65,7 +65,7 @@ def train(args):
     model = UNet(device=device)#.to(device)
     #####
     from torchsummary import summary
-    device_sum = "cpu"#cuda:0
+    device_sum = "cuda"#cuda:0
     model_sum = UNet(device=device_sum)
     print("summary...")
     summary(model_sum, [(3, 64, 64),()])

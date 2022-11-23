@@ -170,7 +170,7 @@ class UNet(nn.Module):
 
         x1 = self.inc(x).to('cuda:2')
         print("x2...")
-        x2 = self.down1(x1, t)
+        x2 = self.down1(x1.to('cuda:1'), t)
         x2 = self.sa1(x2)
         x3 = self.down2(x2, t)
         x3 = self.sa2(x3)
@@ -185,7 +185,7 @@ class UNet(nn.Module):
         x = self.sa4(x)
         x = self.up2(x, x2, t)
         x = self.sa5(x)
-        x = self.up3(x, x1, t)
+        x = self.up3(x, x1.to('cuda:1'), t)
         x = self.sa6(x)
         output = self.outc(x)
         print("end forward")

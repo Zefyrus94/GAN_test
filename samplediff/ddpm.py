@@ -97,7 +97,7 @@ def train(args):
             #noise = noise.to(device)#n
             #print("x_t dev: ",x_t.device.index)
             #print("t dev: ",t.device.index)
-            print("model input shapes",x_t.shape,t.shape)
+            print("model input",x_t,t)
             predicted_noise = model(x_t, t)
             loss = mse(noise, predicted_noise)
 

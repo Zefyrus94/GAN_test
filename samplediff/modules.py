@@ -7,7 +7,9 @@ class SelfAttention(nn.Module):
         super(SelfAttention, self).__init__()
         self.channels = channels
         self.size = size
-        self.mha = nn.MultiheadAttention(channels, 4, batch_first=True)
+        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
+        #cuda:0 and cpu! (when checking argument for argument mat2 in method wrapper_mm)
+        self.mha = nn.MultiheadAttention(channels, 4, batch_first=True).to(device)
         #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
         #cuda:3 and cpu! (when checking argument for argument weight in method wrapper__native_layer_norm)
         self.ln = nn.LayerNorm([channels]).to(device)
@@ -20,8 +22,8 @@ class SelfAttention(nn.Module):
 
     def forward(self, x):
         x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
-        print("SelfAttention",x.device)
         x_ln = self.ln(x)
+        print("SelfAttention",x_ln.device)
         attention_value, _ = self.mha(x_ln, x_ln, x_ln)
         attention_value = attention_value + x
         attention_value = self.ff_self(attention_value) + attention_value

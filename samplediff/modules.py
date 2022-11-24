@@ -6,6 +6,8 @@ import torch.nn.functional as F
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()
+        self.device = device
+        self.time_dim = time_dim
         self.inc = nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False).to('cuda:2')
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (

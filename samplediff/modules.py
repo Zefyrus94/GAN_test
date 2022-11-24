@@ -144,9 +144,9 @@ class UNet(nn.Module):
         #2a)
         """
         |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   ?MiB | SelfAttention(-down: 11239=>?)
+        |    1   11007MiB | SelfAttention(-down: 11239=>?)
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   ?MiB    Down*3,DoubleConv*2,SelfAttention*2
+        |    3   1691MiB    Down*3,DoubleConv*2,SelfAttention*2
         """
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')

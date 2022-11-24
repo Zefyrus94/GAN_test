@@ -44,6 +44,7 @@ class Down(nn.Module):
 
     def forward(self, x, t):
         x = self.maxpool_conv(x)
+        print("Down", x.device, t.device)
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x + emb
 

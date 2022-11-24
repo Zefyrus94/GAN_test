@@ -9,6 +9,7 @@ class UNet(nn.Module):
         self.inc = nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False).to('cuda:2')
 
     def forward(self, x, t):
+        t = t.to('cuda:2')
         x = x.to('cuda:2')
         print("x dev",x.device)
         x1 = self.inc(x)

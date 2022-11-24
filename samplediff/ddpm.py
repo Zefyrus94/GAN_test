@@ -103,6 +103,7 @@ def train(args):
             #but found at least two devices, cuda:1 and cuda:2!
             noise = noise.to(predicted_noise.device)#new
             print("noise devices:",noise.device,predicted_noise.device)
+            return
             loss = mse(noise, predicted_noise)
 
             optimizer.zero_grad()

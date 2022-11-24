@@ -20,6 +20,7 @@ class SelfAttention(nn.Module):
 
     def forward(self, x):
         x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
+        print("SelfAttention",x.device)
         x_ln = self.ln(x)
         return x_ln
         """

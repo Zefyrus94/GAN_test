@@ -112,7 +112,7 @@ class UNet(nn.Module):
         #cuda:2 [1211MiB]  DoubleConv*2,SelfAttention,Up,Conv2d
         #cuda:3 [1615MiB]  Down*2,DoubleConv,SelfAttention
 
-        #da 1 a 3
+        #0)da 1 a 3
         """
         |    0   1839MiB |  selfAttention*2,Up*2
         |    1   597MiB |   -
@@ -120,19 +120,26 @@ class UNet(nn.Module):
         |    3   11549MiB   Down*3,DoubleConv*2,SelfAttention*3
 
         """
-
+        #1)
         """
         |    0   1839MiB |  selfAttention*2,Up*2
         |    1   11249MiB | Down,DoubleConv,SelfAttention(-sa: 11281=>11249)
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
         |    3   1649MiB    Down*2,DoubleConv,SelfAttention*2
         """
-
+        #2)
         """
         |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   ? | Down,DoubleConv,SelfAttention(-dc: 11249=>?)
+        |    1   11239MiB | Down,SelfAttention(-dc: 11249=>11239)
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   ?    Down*2,DoubleConv*2,SelfAttention*2
+        |    3   1679MiB    Down*2,DoubleConv*2,SelfAttention*2
+        """
+        #3)
+        """
+        |    0   1839MiB |  selfAttention*2,Up*2
+        |    1   ?MiB | Down(-sa: 11239=>?)
+        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
+        |    3   1679MiB    Down*2,DoubleConv*2,SelfAttention*3
         """
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')
@@ -151,7 +158,7 @@ class UNet(nn.Module):
         self.up2 = Up(256, 64, device='cuda:2')
         self.sa5 = SelfAttention(64, 32, device='cuda:3')
         self.up3 = Up(128, 64, device='cuda:0')
-        self.sa6 = SelfAttention(64, 64, device='cuda:1')
+        self.sa6 = SelfAttention(64, 64, device='cuda:3')#3)1=>3
         self.outc = nn.Conv2d(64, c_out, kernel_size=1).to('cuda:2')
 
     def pos_encoding(self, t, channels):
@@ -222,7 +229,7 @@ class UNet(nn.Module):
         t = t.to('cuda:0')
         x = self.up3(x, x1, t)
 
-        x = x.to('cuda:1')
+        x = x.to('cuda:3')#3)1=>3
         x = self.sa6(x)
 
         x = x.to('cuda:2')

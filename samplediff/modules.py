@@ -3,12 +3,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 #model parallel
 class SelfAttention(nn.Module):
-    def __init__(self, channels, size):
+    def __init__(self, channels, size, device='cuda:0'):
         super(SelfAttention, self).__init__()
         self.channels = channels
         self.size = size
         self.mha = nn.MultiheadAttention(channels, 4, batch_first=True)
-        self.ln = nn.LayerNorm([channels])
+        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
+        #cuda:3 and cpu! (when checking argument for argument weight in method wrapper__native_layer_norm)
+        self.ln = nn.LayerNorm([channels]).to(device)
         self.ff_self = nn.Sequential(
             nn.LayerNorm([channels]),
             nn.Linear(channels, channels),

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#model parallel
+#model sharding
 class SelfAttention(nn.Module):
     def __init__(self, channels, size, device='cuda:0'):
         super(SelfAttention, self).__init__()
@@ -89,6 +89,10 @@ class UNet(nn.Module):
         self.down3 = Down(256, 256, device='cuda:3')
         self.sa3 = SelfAttention(256, 8, device='cuda:0')
 
+        self.bot1 = DoubleConv(256, 512, device='cuda:1')
+        self.bot2 = DoubleConv(512, 512, device='cuda:2')
+        self.bot3 = DoubleConv(512, 256, device='cuda:3')
+
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
             10000
@@ -126,6 +130,15 @@ class UNet(nn.Module):
 
         x4 = x4.to('cuda:0')
         x4 = self.sa3(x4)
+
+        x4 = x4.to('cuda:1')
+        x4 = self.bot1(x4)
+
+        x4 = x4.to('cuda:2')
+        x4 = self.bot2(x4)
+
+        x4 = x4.to('cuda:3')
+        x4 = self.bot3(x4)
 
         output = x4
         return output

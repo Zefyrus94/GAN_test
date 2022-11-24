@@ -21,14 +21,17 @@ class DoubleConv(nn.Module):
         )
 
     def forward(self, x):
-        return self.double_conv(x)
+        if self.residual:
+            return F.gelu(x + self.double_conv(x))
+        else:
+            return self.double_conv(x)
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
-        
-        self.inc = DoubleConv(c_in, 64, device='cuda:2')#nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False)
+        self.inc = DoubleConv(c_in, 64, device='cuda:2')
+        self.down1 = Down(64, 128, device='cuda:3')
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
             10000
@@ -45,5 +48,7 @@ class UNet(nn.Module):
         x = x.to('cuda:2')
         print("x dev",x.device)
         x1 = self.inc(x)
-        output = x1
+        x1 = x1.to('cuda:3')
+        x2 = self.down1(x1, t)
+        output = x2
         return output

@@ -31,12 +31,14 @@ class Down(nn.Module):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
+            DoubleConv(in_channels, in_channels, residual=True),
+            DoubleConv(in_channels, out_channels),
         )
 
     def forward(self, x, t):
         x = self.maxpool_conv(x)
         return x
-        
+
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()

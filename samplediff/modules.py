@@ -11,12 +11,6 @@ class SelfAttention(nn.Module):
         #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
         #cuda:3 and cpu! (when checking argument for argument weight in method wrapper__native_layer_norm)
         self.ln = nn.LayerNorm([channels]).to(device)
-        self.ff_self = nn.Sequential(
-            nn.LayerNorm([channels]),
-            nn.Linear(channels, channels),
-            nn.GELU(),
-            nn.Linear(channels, channels),
-        )
 
     def forward(self, x):
         x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
@@ -84,7 +78,7 @@ class UNet(nn.Module):
         self.time_dim = time_dim
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')
-        self.sa1 = SelfAttention(128, 32)
+        self.sa1 = SelfAttention(128, 32, device='cuda:3')
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (

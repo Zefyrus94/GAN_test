@@ -85,6 +85,7 @@ class UNet(nn.Module):
         self.down1 = Down(64, 128, device='cuda:3')
         self.sa1 = SelfAttention(128, 32, device='cuda:0')
         self.down2 = Down(128, 256, device='cuda:1')
+        self.sa2 = SelfAttention(256, 16, device='cuda:2')
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
@@ -113,6 +114,9 @@ class UNet(nn.Module):
         x2 = x2.to('cuda:1')
         t = t.to('cuda:1')
         x3 = self.down2(x2, t)
+
+        x3 = x3.to('cuda:2')
+        x3 = self.sa2(x3)
 
         output = x3
         return output

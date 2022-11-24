@@ -31,8 +31,8 @@ class Down(nn.Module):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels),
+            DoubleConv(in_channels, in_channels, residual=True, device=device),
+            DoubleConv(in_channels, out_channels, device=device),
         )
 
     def forward(self, x, t):

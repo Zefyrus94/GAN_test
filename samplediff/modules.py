@@ -192,7 +192,7 @@ class UNet(nn.Module):
         t = t.to('cuda:0')
         x = self.up1(x4, x3, t)
 
-        x = x.to('cuda:1')
+        x = x.to('cuda:3')#1=>3
         x = self.sa4(x)
 
         x = x.to('cuda:2')

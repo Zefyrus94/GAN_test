@@ -99,6 +99,9 @@ def train(args):
             #print("t dev: ",t.device.index)
             print("model input",x_t.device,t.device)
             predicted_noise = model(x_t, t)
+            #RuntimeError: Expected all tensors to be on the same device,
+            #but found at least two devices, cuda:1 and cuda:2!
+            noise = noise.to(predicted_noise.device)#new
             print("noise devices:",noise.device,predicted_noise.device)
             loss = mse(noise, predicted_noise)
 

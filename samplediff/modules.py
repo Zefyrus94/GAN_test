@@ -168,7 +168,7 @@ class UNet(nn.Module):
         t = t.unsqueeze(-1).type(torch.float)
         t = self.pos_encoding(t, self.time_dim)
 
-        x1 = self.inc(x)
+        x1 = self.inc(x.to('cuda:2'))
         x2 = self.down1(x1, t)
         x2 = self.sa1(x2)
         x3 = self.down2(x2, t)

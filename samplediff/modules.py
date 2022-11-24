@@ -76,6 +76,28 @@ class Down(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x + emb
 
+class Up(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=256, device='cuda:0'):
+        super().__init__()
+
+        self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
+        self.conv = nn.Sequential(
+            DoubleConv(in_channels, in_channels, residual=True),
+            DoubleConv(in_channels, out_channels, in_channels // 2),
+        )
+
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ),
+        )
+
+    def forward(self, x, skip_x, t):
+        x = self.up(x)
+        return x
+
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()
@@ -92,6 +114,8 @@ class UNet(nn.Module):
         self.bot1 = DoubleConv(256, 512, device='cuda:1')
         self.bot2 = DoubleConv(512, 512, device='cuda:2')
         self.bot3 = DoubleConv(512, 256, device='cuda:3')
+
+        self.up1 = Up(512, 128, device='cuda:0')
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
@@ -140,5 +164,9 @@ class UNet(nn.Module):
         x4 = x4.to('cuda:3')
         x4 = self.bot3(x4)
 
-        output = x4
+        x4 = x4.to('cuda:0')
+        x3 = x3.to('cuda:0')
+        t = t.to('cuda:0')
+        x = self.up1(x4, x3, t)
+        output = x
         return output

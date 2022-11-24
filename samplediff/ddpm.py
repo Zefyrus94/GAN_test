@@ -99,6 +99,7 @@ def train(args):
             #print("t dev: ",t.device.index)
             print("model input",x_t.device,t.device)
             predicted_noise = model(x_t, t)
+            print("noise devices:",noise.device,predicted_noise.device)
             loss = mse(noise, predicted_noise)
 
             optimizer.zero_grad()

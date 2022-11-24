@@ -201,5 +201,4 @@ class UNet(nn.Module):
         x = x.to('cuda:2')
         output = self.outc(x)
 
-        output = x
         return output

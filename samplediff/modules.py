@@ -9,7 +9,7 @@ class DoubleConv(nn.Module):
         if not mid_channels:
             mid_channels = out_channels
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False).to('cuda:2'),
         )
 
     def forward(self, x):
@@ -21,7 +21,7 @@ class UNet(nn.Module):
         self.time_dim = time_dim
         #senza .to('cuda:2'): RuntimeError:
         #Input type (torch.cuda.FloatTensor) and weight type (torch.FloatTensor) should be the same
-        self.inc = nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False).to('cuda:2')
+        self.inc = DoubleConv(c_in, 64)#nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False)
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
             10000

@@ -34,10 +34,18 @@ class Down(nn.Module):
             DoubleConv(in_channels, in_channels, residual=True, device=device),
             DoubleConv(in_channels, out_channels, device=device),
         )
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ),
+        )
 
     def forward(self, x, t):
         x = self.maxpool_conv(x)
-        return x
+        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
+        return x + emb
 
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):

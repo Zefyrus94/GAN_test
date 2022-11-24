@@ -130,7 +130,7 @@ class UNet(nn.Module):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
-        self.inc = DoubleConv(c_in, 64).to('cuda:2')
+        self.inc = DoubleConv(c_in, 64)
         self.down1 = Down(64, 128)
         self.sa1 = SelfAttention(128, 32)
         self.down2 = Down(128, 256)
@@ -166,11 +166,10 @@ class UNet(nn.Module):
     def forward(self, x, t):
         print("forward",t)
         t = t.unsqueeze(-1).type(torch.float)
-        t = self.pos_encoding(t, self.time_dim).to('cuda:1')
+        t = self.pos_encoding(t, self.time_dim)
 
-        x1 = self.inc(x.to('cuda:2'))
-        print("x2...")
-        x2 = self.down1(x1.to('cuda:1'), t)
+        x1 = self.inc(x)
+        x2 = self.down1(x1, t)
         x2 = self.sa1(x2)
         x3 = self.down2(x2, t)
         x3 = self.sa2(x3)
@@ -185,7 +184,7 @@ class UNet(nn.Module):
         x = self.sa4(x)
         x = self.up2(x, x2, t)
         x = self.sa5(x)
-        x = self.up3(x, x1.to('cuda:1'), t)
+        x = self.up3(x, x1, t)
         x = self.sa6(x)
         output = self.outc(x)
         print("end forward")

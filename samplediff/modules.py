@@ -27,7 +27,8 @@ class UNet(nn.Module):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
-        self.inc = DoubleConv(c_in, 64).to('cuda:2')
+        #self.inc = DoubleConv(c_in, 64).to('cuda:2')
+        self.inc = nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False).to('cuda:2')
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (

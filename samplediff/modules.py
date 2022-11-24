@@ -114,11 +114,25 @@ class UNet(nn.Module):
 
         #da 1 a 3
         """
-        |    0   1839MiB |
-        |    1   597MiB |
-        |    2   1211MiB |
-        |    3   11549MiB
+        |    0   1839MiB |  selfAttention*2,Up*2
+        |    1   597MiB |   -
+        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
+        |    3   11549MiB   Down*3,DoubleConv*2,SelfAttention*3
 
+        """
+
+        """
+        |    0   1839MiB |  selfAttention*2,Up*2
+        |    1   11249MiB | Down,DoubleConv,SelfAttention(-sa: 11281=>11249)
+        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
+        |    3   1649MiB    Down*2,DoubleConv,SelfAttention*2
+        """
+
+                """
+        |    0   1839MiB |  selfAttention*2,Up*2
+        |    1   ? | Down,DoubleConv,SelfAttention(-dc: 11249=>?)
+        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
+        |    3   ?    Down*2,DoubleConv*2,SelfAttention*2
         """
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')
@@ -128,12 +142,12 @@ class UNet(nn.Module):
         self.down3 = Down(256, 256, device='cuda:3')
         self.sa3 = SelfAttention(256, 8, device='cuda:0')
 
-        self.bot1 = DoubleConv(256, 512, device='cuda:1')
+        self.bot1 = DoubleConv(256, 512, device='cuda:3')#2)1=>3
         self.bot2 = DoubleConv(512, 512, device='cuda:2')
         self.bot3 = DoubleConv(512, 256, device='cuda:3')
 
         self.up1 = Up(512, 128, device='cuda:0')
-        self.sa4 = SelfAttention(128, 16, device='cuda:3')#1=>3
+        self.sa4 = SelfAttention(128, 16, device='cuda:3')#1)1=>3
         self.up2 = Up(256, 64, device='cuda:2')
         self.sa5 = SelfAttention(64, 32, device='cuda:3')
         self.up3 = Up(128, 64, device='cuda:0')
@@ -178,7 +192,7 @@ class UNet(nn.Module):
         x4 = x4.to('cuda:0')
         x4 = self.sa3(x4)
 
-        x4 = x4.to('cuda:1')
+        x4 = x4.to('cuda:3')#2)1=>3
         x4 = self.bot1(x4)
 
         x4 = x4.to('cuda:2')
@@ -192,7 +206,7 @@ class UNet(nn.Module):
         t = t.to('cuda:0')
         x = self.up1(x4, x3, t)
 
-        x = x.to('cuda:3')#1=>3
+        x = x.to('cuda:3')#1)1=>3
         x = self.sa4(x)
 
         x = x.to('cuda:2')

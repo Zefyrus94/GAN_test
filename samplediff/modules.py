@@ -74,6 +74,7 @@ class UNet(nn.Module):
         print("x dev",x.device)
         x1 = self.inc(x)
         x1 = x1.to('cuda:3')
+        t = t.to('cuda:3')
         x2 = self.down1(x1, t)
         output = x2
         return output

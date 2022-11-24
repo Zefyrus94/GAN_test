@@ -3,17 +3,21 @@ import torch.nn as nn
 import torch.nn.functional as F
 #model parallel
 class DoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels, mid_channels=None, residual=False):
+    def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, device='cuda:0'):
         super().__init__()
         self.residual = residual
         if not mid_channels:
             mid_channels = out_channels
+        #senza .to(device): RuntimeError:
+        #Conv2d: Input type (torch.cuda.FloatTensor) and weight type (torch.FloatTensor) should be the same
+        #GroupNorm Expected all tensors to be on the same device, but found at least two devices, cuda:2 and cpu!
+        # (when checking argument for argument weight in method wrapper__native_group_norm)
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False).to('cuda:2'),
-            nn.GroupNorm(1, mid_channels),
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False).to(device),
+            nn.GroupNorm(1, mid_channels).to(device),
             nn.GELU(),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False).to('cuda:2'),
-            nn.GroupNorm(1, out_channels),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False).to(device),
+            nn.GroupNorm(1, out_channels).to(device),
         )
 
     def forward(self, x):
@@ -23,17 +27,13 @@ class UNet(nn.Module):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
-        #senza .to('cuda:2'): RuntimeError:
-        #Input type (torch.cuda.FloatTensor) and weight type (torch.FloatTensor) should be the same
-        self.inc = DoubleConv(c_in, 64)#nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False)
+        
+        self.inc = DoubleConv(c_in, 64, device='cuda:2')#nn.Conv2d(c_in, c_out, kernel_size=3, padding=1, bias=False)
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
             10000
             ** (torch.arange(0, channels, 2, device=self.device).float() / channels)
         )
-        #print("pos_encoding dev t",t.device.index," inv_freq,",inv_freq.device.index)
-        print("pos_encoding",t.shape)
-        print(t,inv_freq)
         pos_enc_a = torch.sin(t.repeat(1, channels // 2) * inv_freq)
         pos_enc_b = torch.cos(t.repeat(1, channels // 2) * inv_freq)
         pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)

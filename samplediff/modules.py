@@ -103,5 +103,6 @@ class UNet(nn.Module):
         x1 = x1.to('cuda:3')
         t = t.to('cuda:3')
         x2 = self.down1(x1, t)
+        x2 = self.sa1(x2)
         output = x2
         return output

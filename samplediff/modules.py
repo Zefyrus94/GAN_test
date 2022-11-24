@@ -25,6 +25,18 @@ class DoubleConv(nn.Module):
             return F.gelu(x + self.double_conv(x))
         else:
             return self.double_conv(x)
+
+class Down(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=256, device="cuda:0"):
+        super().__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool2d(2),
+        )
+
+    def forward(self, x, t):
+        x = self.maxpool_conv(x)
+        return x
+        
 class UNet(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()

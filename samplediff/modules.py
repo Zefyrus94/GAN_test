@@ -128,7 +128,7 @@ class UNet(nn.Module):
         |    3   1649MiB    Down*2,DoubleConv,SelfAttention*2
         """
 
-                """
+        """
         |    0   1839MiB |  selfAttention*2,Up*2
         |    1   ? | Down,DoubleConv,SelfAttention(-dc: 11249=>?)
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d

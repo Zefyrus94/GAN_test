@@ -125,7 +125,7 @@ class UNet(nn.Module):
         self.sa5 = SelfAttention(64, 32, device='cuda:3')
         self.up3 = Up(128, 64, device='cuda:0')
         self.sa6 = SelfAttention(64, 64, device='cuda:1')
-        self.outc = nn.Conv2d(64, c_out, kernel_size=1)
+        self.outc = nn.Conv2d(64, c_out, kernel_size=1).to('cuda:2')
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (
@@ -197,6 +197,9 @@ class UNet(nn.Module):
 
         x = x.to('cuda:1')
         x = self.sa6(x)
+
+        x = x.to('cuda:2')
+        output = self.outc(x)
 
         output = x
         return output

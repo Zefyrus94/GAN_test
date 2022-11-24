@@ -34,12 +34,14 @@ class Down(nn.Module):
             DoubleConv(in_channels, in_channels, residual=True, device=device),
             DoubleConv(in_channels, out_channels, device=device),
         )
+        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
+        #cpu and cuda:1! (when checking argument for argument mat1 in method wrapper_addmm)
         self.emb_layer = nn.Sequential(
             nn.SiLU(),
             nn.Linear(
                 emb_dim,
                 out_channels
-            ),
+            ).to(device),
         )
 
     def forward(self, x, t):

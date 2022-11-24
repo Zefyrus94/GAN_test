@@ -11,18 +11,21 @@ class SelfAttention(nn.Module):
         #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
         #cuda:3 and cpu! (when checking argument for argument weight in method wrapper__native_layer_norm)
         self.ln = nn.LayerNorm([channels]).to(device)
+        self.ff_self = nn.Sequential(
+            nn.LayerNorm([channels]).to(device),
+            nn.Linear(channels, channels).to(device),
+            nn.GELU(),
+            nn.Linear(channels, channels).to(device),
+        )
 
     def forward(self, x):
         x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
         print("SelfAttention",x.device)
         x_ln = self.ln(x)
-        return x_ln
-        """
         attention_value, _ = self.mha(x_ln, x_ln, x_ln)
         attention_value = attention_value + x
         attention_value = self.ff_self(attention_value) + attention_value
         return attention_value.swapaxes(2, 1).view(-1, self.channels, self.size, self.size)
-        """
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, device='cuda:0'):
         super().__init__()

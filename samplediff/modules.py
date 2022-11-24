@@ -61,7 +61,7 @@ class Down(nn.Module):
             DoubleConv(in_channels, out_channels, device=device),
         )
         #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
-        #cpu and cuda:1! (when checking argument for argument mat1 in method wrapper_addmm)
+        #cpu and cuda:x! (when checking argument for argument mat1 in method wrapper_addmm)
         self.emb_layer = nn.Sequential(
             nn.SiLU(),
             nn.Linear(
@@ -107,24 +107,28 @@ class UNet(nn.Module):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
+        #cuda:0 [1839MiB]   selfAttention*2,Up*2
+        #cuda:1 [11281MiB]  Down,DoubleConv,SelfAttention*2
+        #cuda:2 [1211MiB]  DoubleConv*2,SelfAttention,Up,Conv2d
+        #cuda:3 [1615MiB]  Down*2,DoubleConv,SelfAttention
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')
         self.sa1 = SelfAttention(128, 32, device='cuda:0')
-        self.down2 = Down(128, 256, device='cuda:1')
+        self.down2 = Down(128, 256, device='cuda:3')
         self.sa2 = SelfAttention(256, 16, device='cuda:2')
         self.down3 = Down(256, 256, device='cuda:3')
         self.sa3 = SelfAttention(256, 8, device='cuda:0')
 
-        self.bot1 = DoubleConv(256, 512, device='cuda:1')
+        self.bot1 = DoubleConv(256, 512, device='cuda:3')
         self.bot2 = DoubleConv(512, 512, device='cuda:2')
         self.bot3 = DoubleConv(512, 256, device='cuda:3')
 
         self.up1 = Up(512, 128, device='cuda:0')
-        self.sa4 = SelfAttention(128, 16, device='cuda:1')
+        self.sa4 = SelfAttention(128, 16, device='cuda:3')
         self.up2 = Up(256, 64, device='cuda:2')
         self.sa5 = SelfAttention(64, 32, device='cuda:3')
         self.up3 = Up(128, 64, device='cuda:0')
-        self.sa6 = SelfAttention(64, 64, device='cuda:1')
+        self.sa6 = SelfAttention(64, 64, device='cuda:3')
         self.outc = nn.Conv2d(64, c_out, kernel_size=1).to('cuda:2')
 
     def pos_encoding(self, t, channels):
@@ -151,8 +155,8 @@ class UNet(nn.Module):
         x2 = x2.to('cuda:0')
         x2 = self.sa1(x2)
 
-        x2 = x2.to('cuda:1')
-        t = t.to('cuda:1')
+        x2 = x2.to('cuda:3')
+        t = t.to('cuda:3')
         x3 = self.down2(x2, t)
 
         x3 = x3.to('cuda:2')
@@ -165,7 +169,7 @@ class UNet(nn.Module):
         x4 = x4.to('cuda:0')
         x4 = self.sa3(x4)
 
-        x4 = x4.to('cuda:1')
+        x4 = x4.to('cuda:3')
         x4 = self.bot1(x4)
 
         x4 = x4.to('cuda:2')
@@ -179,7 +183,7 @@ class UNet(nn.Module):
         t = t.to('cuda:0')
         x = self.up1(x4, x3, t)
 
-        x = x.to('cuda:1')
+        x = x.to('cuda:3')
         x = self.sa4(x)
 
         x = x.to('cuda:2')
@@ -195,7 +199,7 @@ class UNet(nn.Module):
         t = t.to('cuda:0')
         x = self.up3(x, x1, t)
 
-        x = x.to('cuda:1')
+        x = x.to('cuda:3')
         x = self.sa6(x)
 
         x = x.to('cuda:2')

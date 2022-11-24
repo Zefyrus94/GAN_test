@@ -132,8 +132,8 @@ class UNet(nn.Module):
         self.device = device
         self.time_dim = time_dim
         self.inc = DoubleConv(c_in, 64).to('cuda:2')
-        self.down1 = Down(64, 128).to('cuda:2')
-        self.sa1 = SelfAttention(128, 32).to('cuda:3')
+        self.down1 = Down(64, 128)#.to('cuda:2')
+        self.sa1 = SelfAttention(128, 32)#.to('cuda:3')
         self.down2 = Down(128, 256)
         self.sa2 = SelfAttention(256, 16)
         self.down3 = Down(256, 256)
@@ -171,8 +171,9 @@ class UNet(nn.Module):
 
         x1 = self.inc(x.to('cuda:2'))#1=>2=>2
         print("x2...")
-        x2 = self.down1(x1, t.to('cuda:2'))#(2,1=>2)=>2
-        x2 = self.sa1(x2.to('cuda:3'))#2=>3=>3
+        #x2 = self.down1(x1, t.to('cuda:2'))#(2,1=>2)=>2
+        x2 = self.down1(x1.to('cuda:1'), t)#(2,1=>2)=>2
+        x2 = self.sa1(x2)#2=>3=>3#x2.to('cuda:3')
         x3 = self.down2(x2.to('cuda:1'), t.to('cuda:1'))#(3=>1,2=>1)=>1
         x3 = self.sa2(x3)
         x4 = self.down3(x3, t)

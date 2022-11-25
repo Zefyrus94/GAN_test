@@ -81,6 +81,7 @@ else:
 	print("split...")
 	stmt = "train(model)"
 	setup = "model = ToyModelSplit()"
+	num_repeat = 10
 	pp_run_times = timeit.repeat(
 	    stmt, setup, number=1, repeat=num_repeat, globals=globals())
 	pp_mean, pp_std = np.mean(pp_run_times), np.std(pp_run_times)

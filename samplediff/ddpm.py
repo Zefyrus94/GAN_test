@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from torch import optim
 from utils import *
-from modules import UNet
+#from modules import UNet
+from modules_split import UNet
 import logging
 from torch.utils.tensorboard import SummaryWriter
 

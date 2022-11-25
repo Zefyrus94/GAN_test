@@ -50,13 +50,13 @@ class ToyModelSplit(ToyModel):
 
 		return torch.cat(ret)
 
-def train(model):
+def train(model, device):
 	loss_fn = nn.MSELoss()
 	optimizer = optim.SGD(model.parameters(), lr=0.001)
 
 	optimizer.zero_grad()
 	outputs = model(torch.randn(20, 10))
-	labels = torch.randn(20, 5).to('cuda:1')
+	labels = torch.randn(20, 5).to(device)
 	loss_fn(outputs, labels).backward()
 	optimizer.step()
 
@@ -79,9 +79,9 @@ else:
 	model = ToyModelSplit()
 	print(model)
 	print("params",model.parameters())
-	train(model)
+	train(model,'cuda:3')
 	"""
-	stmt = "train(model)"
+	stmt = "train(model,'cuda:3')"
 	setup = "model = ToyModelSplit()"
 	num_repeat = 10
 	pp_run_times = timeit.repeat(

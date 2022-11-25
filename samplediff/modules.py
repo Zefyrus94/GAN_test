@@ -267,13 +267,13 @@ class UNet(UNetNoSplit):
 
         for s_next in splits:
             # A. s_prev runs on cuda:1
-            s_prev = self.down1(s_prev.to('cuda:3'),t)
+            #s_prev = self.down1(s_prev.to('cuda:3'),t)
             ret.append(s_prev)
 
             # B. s_next runs on cuda:2, which can run concurrently with A
             s_prev = self.inc(s_next.to('cuda:2'))
 
-        s_prev = self.down1(s_prev.to('cuda:3'),t)
+        #s_prev = self.down1(s_prev.to('cuda:3'),t)
         ret.append(s_prev)
 
         return torch.cat(ret)

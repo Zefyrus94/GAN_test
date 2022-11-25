@@ -70,12 +70,14 @@ def train(args):
     dataloader = get_data(args)
     model = UNet(device=device)#to(device) per i pesi della rete
     #####
-    """
+    #"""
     from torchsummary import summary
     device_sum = "cuda"
     model_sum = UNet(device=device_sum).to(device_sum)
     summary(model_sum, [(3, 64, 64),()])
-    """
+    print("end summary")
+    return
+    #"""
     #####
     start_epoch = 1#agg
     #start_epoch = 278#agg

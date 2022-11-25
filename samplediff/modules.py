@@ -102,7 +102,7 @@ class Up(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x
 
-class UNet(nn.Module):
+class UNetNoSplit(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()
         self.device = device
@@ -243,4 +243,94 @@ class UNet(nn.Module):
         x = x.to('cuda:2')
         output = self.outc(x)
 
+        return output
+
+class UNet(UNetNoSplit):
+    def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0", split_size=20, *args, **kwargs):
+        super(UNet, self).__init__(*args, **kwargs)
+        self.split_size = split_size
+
+    def forward(self, x, t):
+        t = t.unsqueeze(-1).type(torch.float)
+        t = self.pos_encoding(t, self.time_dim)
+        #t = t.to('cuda:2')
+        splits = iter(x.split(self.split_size, dim=0))
+        s_next = next(splits)
+
+        s_prev = self.inc(s_next.to('cuda:2'))
+        ret = []
+
+        for s_next in splits:
+            # A. s_prev runs on cuda:1
+            s_prev = self.down1(s_prev.to('cuda:3'),t)
+            ret.append(s_prev)
+
+            # B. s_next runs on cuda:2, which can run concurrently with A
+            s_prev = self.inc(s_next.to('cuda:2'))
+
+        s_prev = self.down1(s_prev.to('cuda:3'),t)
+        ret.append(s_prev)
+
+        return torch.cat(ret)
+        """
+        x = x.to('cuda:2')
+        x1 = self.inc(x)
+        
+        x1 = x1.to('cuda:3')
+        t = t.to('cuda:3')
+        x2 = self.down1(x1, t)
+
+        x2 = x2.to('cuda:2')#3)0=>2
+        x2 = self.sa1(x2)
+
+        x2 = x2.to('cuda:3')#2b)1=>3
+        t = t.to('cuda:3')#2b)1=>3
+        x3 = self.down2(x2, t)
+
+        x3 = x3.to('cuda:2')
+        x3 = self.sa2(x3)
+
+        x3 = x3.to('cuda:3')
+        t = t.to('cuda:3')
+        x4 = self.down3(x3, t)
+
+        x4 = x4.to('cuda:2')#3)0=>2
+        x4 = self.sa3(x4)
+
+        x4 = x4.to('cuda:3')#2)1=>3
+        x4 = self.bot1(x4)
+
+        x4 = x4.to('cuda:2')
+        x4 = self.bot2(x4)
+
+        x4 = x4.to('cuda:3')
+        x4 = self.bot3(x4)
+
+        x4 = x4.to('cuda:2')#3)0=>2
+        x3 = x3.to('cuda:2')#3)0=>2
+        t = t.to('cuda:2')#3)0=>2
+        x = self.up1(x4, x3, t)
+
+        x = x.to('cuda:3')#1)1=>3
+        x = self.sa4(x)
+
+        x = x.to('cuda:2')
+        x2 = x2.to('cuda:2')
+        t = t.to('cuda:2')
+        x = self.up2(x, x2, t)
+
+        x = x.to('cuda:3')
+        x = self.sa5(x)
+
+        x = x.to('cuda:2')#3)0=>2
+        x1 = x1.to('cuda:2')#3)0=>2
+        t = t.to('cuda:2')#3)0=>2
+        x = self.up3(x, x1, t)
+
+        x = x.to('cuda:1')#no:2a)1=>3
+        x = self.sa6(x)
+
+        x = x.to('cuda:2')
+        output = self.outc(x)
+        """
         return output

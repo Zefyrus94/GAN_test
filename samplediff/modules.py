@@ -41,17 +41,18 @@ class DoubleConv(nn.Module):
         # (when checking argument for argument weight in method wrapper__native_group_norm)
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False).to(device),
-            nn.GroupNorm(1, mid_channels).to(device),
-            nn.GELU(),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False).to(device),
-            nn.GroupNorm(1, out_channels).to(device),
+            #nn.GroupNorm(1, mid_channels).to(device),
+            #nn.GELU(),
+            #nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False).to(device),
+            #nn.GroupNorm(1, out_channels).to(device),
         )
 
     def forward(self, x):
-        if self.residual:
-            return F.gelu(x + self.double_conv(x))
-        else:
-            return self.double_conv(x)
+        return self.double_conv(x)
+        #if self.residual:
+        #    return F.gelu(x + self.double_conv(x))
+        #else:
+        #    return self.double_conv(x)
 
 class Down(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=256, device="cuda:0"):

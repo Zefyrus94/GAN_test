@@ -77,6 +77,8 @@ if not is_split:
 else:
 	print("split...")
 	model = ToyModelSplit()
+	print(model)
+	print("params",model.parameters())
 	train(model)
 	"""
 	stmt = "train(model)"

@@ -28,7 +28,7 @@ class ToyModel(nn.Module):
 #ToyModelSplit
 class ToyModelSplit(ToyModel):
 	def __init__(self, split_size=20, *args, **kwargs):
-		super(ToyModel, self).__init__(*args, **kwargs)
+		super(ToyModelSplit, self).__init__(*args, **kwargs)
 		self.split_size = split_size
 
 	def forward(self, x):

@@ -31,6 +31,7 @@ class SelfAttention(nn.Module):
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, device='cuda:0'):
         super().__init__()
+        self.device = device
         self.residual = residual
         if not mid_channels:
             mid_channels = out_channels
@@ -47,7 +48,7 @@ class DoubleConv(nn.Module):
         )
 
     def forward(self, x):
-        print("DoubleConv dev",device)
+        print("DoubleConv dev",self.device)
         if self.residual:
             return F.gelu(x + self.double_conv(x))
         else:

@@ -130,11 +130,11 @@ class UNetBase(nn.Module):
         self.sa6 = SelfAttention(64, 64, device='cuda:1')#no:2a)1=>3
         self.outc = nn.Conv2d(64, c_out, kernel_size=1).to('cuda:2')
 
-    def pos_encoding(self, t, channels):
+    def pos_encoding(self, t, channels, device='cuda:0'):
         inv_freq = 1.0 / (
             10000
             ** (torch.arange(0, channels, 2, device=self.device).float() / channels)
-        )
+        ).to(device)
         pos_enc_a = torch.sin(t.repeat(1, channels // 2) * inv_freq)
         pos_enc_b = torch.cos(t.repeat(1, channels // 2) * inv_freq)
         pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)
@@ -226,7 +226,7 @@ class UNet(UNetBase):
         s_next_t = next(splits_t).to('cuda:3')#1
         #print("s_next_t",s_next_t)
         s_next_t = s_next_t.unsqueeze(-1).type(torch.float)#1
-        s_next_t = self.pos_encoding(s_next_t, self.time_dim)#1
+        s_next_t = self.pos_encoding(s_next_t, self.time_dim,'cuda:3')#1
 
         ret = []
 
@@ -235,7 +235,7 @@ class UNet(UNetBase):
             ret.append(s_prev)
             s_next_t = next(splits_t).to('cuda:3')#2
             s_next_t = s_next_t.unsqueeze(-1).type(torch.float)#2
-            s_next_t = self.pos_encoding(s_next_t, self.time_dim)#2
+            s_next_t = self.pos_encoding(s_next_t, self.time_dim,'cuda:3')#2
             s_prev = self.inc(s_next.to('cuda:2'))#2
 
         s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#2

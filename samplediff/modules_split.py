@@ -104,7 +104,7 @@ class Up(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x
 
-class UNetNoSplit(nn.Module):
+class UNetBase(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()
         self.device = device
@@ -206,19 +206,19 @@ class UNetNoSplit(nn.Module):
 
         return output
 
-class UNet(UNetNoSplit):
+class UNet(UNetBase):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0", split_size=20, *args, **kwargs):
         super(UNet, self).__init__(*args, **kwargs)
         self.split_size = split_size
-        self.inc = DoubleConv(c_in, 64, device='cuda:2')#aggiunto
 
     def forward(self, x, t):
         t = t.unsqueeze(-1).type(torch.float)
         t = self.pos_encoding(t, self.time_dim)
         #t = t.to('cuda:2')
         splits = iter(x.split(self.split_size, dim=0))
+        print("splits",splits)
         s_next = next(splits)
-
+        print("s_next",s_next)
         s_next = s_next.to('cuda:2')
         print("s_next dev",s_next.device)
         s_prev = self.inc(s_next)

@@ -1,10 +1,35 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+#model sharding
+class SelfAttention(nn.Module):
+    def __init__(self, channels, size, device='cuda:0'):
+        super(SelfAttention, self).__init__()
+        self.channels = channels
+        self.size = size
+        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
+        #cuda:0 and cpu! (when checking argument for argument mat2 in method wrapper_mm)
+        self.mha = nn.MultiheadAttention(channels, 4, batch_first=True).to(device)
+        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
+        #cuda:3 and cpu! (when checking argument for argument weight in method wrapper__native_layer_norm)
+        self.ln = nn.LayerNorm([channels]).to(device)
+        self.ff_self = nn.Sequential(
+            nn.LayerNorm([channels]).to(device),
+            nn.Linear(channels, channels).to(device),
+            nn.GELU(),
+            nn.Linear(channels, channels).to(device),
+        )
 
+    def forward(self, x):
+        x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
+        x_ln = self.ln(x)
+        #print("SelfAttention",x_ln.device)
+        attention_value, _ = self.mha(x_ln, x_ln, x_ln)
+        attention_value = attention_value + x
+        attention_value = self.ff_self(attention_value) + attention_value
+        return attention_value.swapaxes(2, 1).view(-1, self.channels, self.size, self.size)
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, device='cuda:0'):
-        print("DoubleConv device",device)
         super().__init__()
         self.residual = residual
         if not mid_channels:
@@ -15,18 +40,17 @@ class DoubleConv(nn.Module):
         # (when checking argument for argument weight in method wrapper__native_group_norm)
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False).to(device),
-            #nn.GroupNorm(1, mid_channels).to(device),
-            #nn.GELU(),
-            #nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False).to(device),
-            #nn.GroupNorm(1, out_channels).to(device),
+            nn.GroupNorm(1, mid_channels).to(device),
+            nn.GELU(),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False).to(device),
+            nn.GroupNorm(1, out_channels).to(device),
         )
 
     def forward(self, x):
-        return self.double_conv(x)
-        #if self.residual:
-        #    return F.gelu(x + self.double_conv(x))
-        #else:
-        #    return self.double_conv(x)
+        if self.residual:
+            return F.gelu(x + self.double_conv(x))
+        else:
+            return self.double_conv(x)
 
 class Down(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=256, device="cuda:0"):
@@ -52,6 +76,32 @@ class Down(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x + emb
 
+class Up(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=256, device='cuda:0'):
+        super().__init__()
+
+        self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
+        self.conv = nn.Sequential(
+            DoubleConv(in_channels, in_channels, residual=True, device=device),
+            DoubleConv(in_channels, out_channels, in_channels // 2, device=device),
+        )
+
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ).to(device),
+        )
+
+    def forward(self, x, skip_x, t):
+        x = self.up(x)
+        #print("Up",skip_x.device,x.device)
+        x = torch.cat([skip_x, x], dim=1)
+        x = self.conv(x)
+        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
+        return x
+        
 class UNetNoSplit(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()

@@ -134,38 +134,39 @@ class UNet(nn.Module):
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
         |    3   1679MiB    Down*2,DoubleConv*2,SelfAttention*2
         """
-        #3)Lo strato di self_attention successivo all'ultimo upsampling occupa ca 10GB di spazio
+        #2a) ex.3 Lo strato di self_attention successivo all'ultimo upsampling occupa ca 10GB di spazio
         """
         |    0   1839MiB |  selfAttention*2,Up*2
         |    1   971MiB | Down(-sa: 11239=>971)
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
         |    3   11535MiB    Down*2,DoubleConv*2,SelfAttention*3
         """
-        #2a)
+        #2b) ex.2a
         """
         |    0   1839MiB |  selfAttention*2,Up*2
         |    1   11007MiB | SelfAttention(-down: 11239=>?)
         |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
         |    3   1691MiB    Down*3,DoubleConv*2,SelfAttention*2
         """
+        #3) 0=>2
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')
-        self.sa1 = SelfAttention(128, 32, device='cuda:0')
-        self.down2 = Down(128, 256, device='cuda:3')#2a)1=>3
+        self.sa1 = SelfAttention(128, 32, device='cuda:2')#3)0=>2
+        self.down2 = Down(128, 256, device='cuda:3')#2b)1=>3
         self.sa2 = SelfAttention(256, 16, device='cuda:2')
         self.down3 = Down(256, 256, device='cuda:3')
-        self.sa3 = SelfAttention(256, 8, device='cuda:0')
+        self.sa3 = SelfAttention(256, 8, device='cuda:2')#3)0=>2
 
         self.bot1 = DoubleConv(256, 512, device='cuda:3')#2)1=>3
         self.bot2 = DoubleConv(512, 512, device='cuda:2')
         self.bot3 = DoubleConv(512, 256, device='cuda:3')
 
-        self.up1 = Up(512, 128, device='cuda:0')
+        self.up1 = Up(512, 128, device='cuda:2')#3)0=>2
         self.sa4 = SelfAttention(128, 16, device='cuda:3')#1)1=>3
         self.up2 = Up(256, 64, device='cuda:2')
         self.sa5 = SelfAttention(64, 32, device='cuda:3')
-        self.up3 = Up(128, 64, device='cuda:0')
-        self.sa6 = SelfAttention(64, 64, device='cuda:1')#no:3)1=>3
+        self.up3 = Up(128, 64, device='cuda:2')#3)0=>2
+        self.sa6 = SelfAttention(64, 64, device='cuda:1')#no:2a)1=>3
         self.outc = nn.Conv2d(64, c_out, kernel_size=1).to('cuda:2')
 
     def pos_encoding(self, t, channels):
@@ -189,21 +190,21 @@ class UNet(nn.Module):
         t = t.to('cuda:3')
         x2 = self.down1(x1, t)
 
-        x2 = x2.to('cuda:0')
+        x2 = x2.to('cuda:2')#3)0=>2
         x2 = self.sa1(x2)
 
-        x2 = x2.to('cuda:3')#2a)1=>3
-        t = t.to('cuda:3')#2a)1=>3
+        x2 = x2.to('cuda:3')#2b)1=>3
+        t = t.to('cuda:3')#2b)1=>3
         x3 = self.down2(x2, t)
 
         x3 = x3.to('cuda:2')
-        x3 = self.sa2(x3)
+        x3 = self.sa2(x2a)
 
         x3 = x3.to('cuda:3')
         t = t.to('cuda:3')
         x4 = self.down3(x3, t)
 
-        x4 = x4.to('cuda:0')
+        x4 = x4.to('cuda:2')#3)0=>2
         x4 = self.sa3(x4)
 
         x4 = x4.to('cuda:3')#2)1=>3
@@ -215,9 +216,9 @@ class UNet(nn.Module):
         x4 = x4.to('cuda:3')
         x4 = self.bot3(x4)
 
-        x4 = x4.to('cuda:0')
-        x3 = x3.to('cuda:0')
-        t = t.to('cuda:0')
+        x4 = x4.to('cuda:2')#3)0=>2
+        x3 = x3.to('cuda:2')#3)0=>2
+        t = t.to('cuda:2')#3)0=>2
         x = self.up1(x4, x3, t)
 
         x = x.to('cuda:3')#1)1=>3
@@ -231,12 +232,12 @@ class UNet(nn.Module):
         x = x.to('cuda:3')
         x = self.sa5(x)
 
-        x = x.to('cuda:0')
-        x1 = x1.to('cuda:0')
-        t = t.to('cuda:0')
+        x = x.to('cuda:2')#3)0=>2
+        x1 = x1.to('cuda:2')#3)0=>2
+        t = t.to('cuda:2')#3)0=>2
         x = self.up3(x, x1, t)
 
-        x = x.to('cuda:1')#no:3)1=>3
+        x = x.to('cuda:1')#no:2a)1=>3
         x = self.sa6(x)
 
         x = x.to('cuda:2')

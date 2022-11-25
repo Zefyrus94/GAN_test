@@ -73,8 +73,8 @@ def train(args):
     #####
     #"""
     from torchsummary import summary
-    device_sum = "cuda"
-    model_sum = UNet(device=device_sum).to(device_sum)
+    #device_sum = "cuda"
+    model_sum = UNet(device=device_sum)#.to(device_sum)
     summary(model_sum, [(3, 64, 64),()])
     print("end summary")
     return

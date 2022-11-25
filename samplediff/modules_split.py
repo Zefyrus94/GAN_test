@@ -1,33 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#model sharding
-class SelfAttention(nn.Module):
-    def __init__(self, channels, size, device='cuda:0'):
-        super(SelfAttention, self).__init__()
-        self.channels = channels
-        self.size = size
-        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
-        #cuda:0 and cpu! (when checking argument for argument mat2 in method wrapper_mm)
-        self.mha = nn.MultiheadAttention(channels, 4, batch_first=True).to(device)
-        #RuntimeError: Expected all tensors to be on the same device, but found at least two devices, 
-        #cuda:3 and cpu! (when checking argument for argument weight in method wrapper__native_layer_norm)
-        self.ln = nn.LayerNorm([channels]).to(device)
-        self.ff_self = nn.Sequential(
-            nn.LayerNorm([channels]).to(device),
-            nn.Linear(channels, channels).to(device),
-            nn.GELU(),
-            nn.Linear(channels, channels).to(device),
-        )
 
-    def forward(self, x):
-        x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
-        x_ln = self.ln(x)
-        #print("SelfAttention",x_ln.device)
-        attention_value, _ = self.mha(x_ln, x_ln, x_ln)
-        attention_value = attention_value + x
-        attention_value = self.ff_self(attention_value) + attention_value
-        return attention_value.swapaxes(2, 1).view(-1, self.channels, self.size, self.size)
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, device='cuda:0'):
         print("DoubleConv device",device)
@@ -78,79 +52,12 @@ class Down(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
         return x + emb
 
-class Up(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=256, device='cuda:0'):
-        super().__init__()
-
-        self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
-        self.conv = nn.Sequential(
-            DoubleConv(in_channels, in_channels, residual=True, device=device),
-            DoubleConv(in_channels, out_channels, in_channels // 2, device=device),
-        )
-
-        self.emb_layer = nn.Sequential(
-            nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ).to(device),
-        )
-
-    def forward(self, x, skip_x, t):
-        x = self.up(x)
-        #print("Up",skip_x.device,x.device)
-        x = torch.cat([skip_x, x], dim=1)
-        x = self.conv(x)
-        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
-        return x
-
 class UNetNoSplit(nn.Module):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0"):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
-        #cuda:0 [1839MiB]   selfAttention*2,Up*2
-        #cuda:1 [11281MiB]  Down,DoubleConv,SelfAttention*2
-        #cuda:2 [1211MiB]  DoubleConv*2,SelfAttention,Up,Conv2d
-        #cuda:3 [1615MiB]  Down*2,DoubleConv,SelfAttention
-
-        #0)da 1 a 3
-        """
-        |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   597MiB |   -
-        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   11549MiB   Down*3,DoubleConv*2,SelfAttention*3
-
-        """
-        #1)
-        """
-        |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   11249MiB | Down,DoubleConv,SelfAttention(-sa: 11281=>11249)
-        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   1649MiB    Down*2,DoubleConv,SelfAttention*2
-        """
-        #2)
-        """
-        |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   11239MiB | Down,SelfAttention(-dc: 11249=>11239)
-        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   1679MiB    Down*2,DoubleConv*2,SelfAttention*2
-        """
-        #2a) ex.3 Lo strato di self_attention successivo all'ultimo upsampling occupa ca 10GB di spazio
-        """
-        |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   971MiB | Down(-sa: 11239=>971)
-        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   11535MiB    Down*2,DoubleConv*2,SelfAttention*3
-        """
-        #2b) ex.2a
-        """
-        |    0   1839MiB |  selfAttention*2,Up*2
-        |    1   11007MiB | SelfAttention(-down: 11239=>?)
-        |    2   1211MiB |  DoubleConv*2,SelfAttention,Up,Conv2d
-        |    3   1691MiB    Down*3,DoubleConv*2,SelfAttention*2
-        """
-        #3) 0=>2
+        
         self.inc = DoubleConv(c_in, 64, device='cuda:2')
         self.down1 = Down(64, 128, device='cuda:3')
         self.sa1 = SelfAttention(128, 32, device='cuda:2')#3)0=>2
@@ -266,76 +173,12 @@ class UNet(UNetNoSplit):
         ret = []
 
         for s_next in splits:
-            # A. s_prev runs on cuda:1
             #s_prev = self.down1(s_prev.to('cuda:3'),t)
             ret.append(s_prev)
 
-            # B. s_next runs on cuda:2, which can run concurrently with A
             s_prev = self.inc(s_next.to('cuda:2'))
 
         #s_prev = self.down1(s_prev.to('cuda:3'),t)
         ret.append(s_prev)
 
         return torch.cat(ret)
-        """
-        x = x.to('cuda:2')
-        x1 = self.inc(x)
-        
-        x1 = x1.to('cuda:3')
-        t = t.to('cuda:3')
-        x2 = self.down1(x1, t)
-
-        x2 = x2.to('cuda:2')#3)0=>2
-        x2 = self.sa1(x2)
-
-        x2 = x2.to('cuda:3')#2b)1=>3
-        t = t.to('cuda:3')#2b)1=>3
-        x3 = self.down2(x2, t)
-
-        x3 = x3.to('cuda:2')
-        x3 = self.sa2(x3)
-
-        x3 = x3.to('cuda:3')
-        t = t.to('cuda:3')
-        x4 = self.down3(x3, t)
-
-        x4 = x4.to('cuda:2')#3)0=>2
-        x4 = self.sa3(x4)
-
-        x4 = x4.to('cuda:3')#2)1=>3
-        x4 = self.bot1(x4)
-
-        x4 = x4.to('cuda:2')
-        x4 = self.bot2(x4)
-
-        x4 = x4.to('cuda:3')
-        x4 = self.bot3(x4)
-
-        x4 = x4.to('cuda:2')#3)0=>2
-        x3 = x3.to('cuda:2')#3)0=>2
-        t = t.to('cuda:2')#3)0=>2
-        x = self.up1(x4, x3, t)
-
-        x = x.to('cuda:3')#1)1=>3
-        x = self.sa4(x)
-
-        x = x.to('cuda:2')
-        x2 = x2.to('cuda:2')
-        t = t.to('cuda:2')
-        x = self.up2(x, x2, t)
-
-        x = x.to('cuda:3')
-        x = self.sa5(x)
-
-        x = x.to('cuda:2')#3)0=>2
-        x1 = x1.to('cuda:2')#3)0=>2
-        t = t.to('cuda:2')#3)0=>2
-        x = self.up3(x, x1, t)
-
-        x = x.to('cuda:1')#no:2a)1=>3
-        x = self.sa6(x)
-
-        x = x.to('cuda:2')
-        output = self.outc(x)
-        """
-        return output

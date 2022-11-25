@@ -30,6 +30,7 @@ class SelfAttention(nn.Module):
         return attention_value.swapaxes(2, 1).view(-1, self.channels, self.size, self.size)
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, device='cuda:0'):
+        print("DoubleConv device",device)
         super().__init__()
         self.residual = residual
         if not mid_channels:
@@ -258,7 +259,9 @@ class UNet(UNetNoSplit):
         splits = iter(x.split(self.split_size, dim=0))
         s_next = next(splits)
 
-        s_prev = self.inc(s_next.to('cuda:2'))
+        s_next = s_next.to('cuda:2')
+        print("s_next dev",s_next.device)
+        s_prev = self.inc(s_next)
         ret = []
 
         for s_next in splits:

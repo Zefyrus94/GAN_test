@@ -76,11 +76,11 @@ if not is_split:
 	optimizer.step()
 else:
 	print("split...")
-	model = ToyModelSplit()
-	print(model)
-	print("params",model.parameters())
-	train(model,'cuda:3')
-	"""
+	#model = ToyModelSplit()
+	#print(model)
+	#print("params",model.parameters())
+	#train(model,'cuda:3')
+	
 	stmt = "train(model,'cuda:3')"
 	setup = "model = ToyModelSplit()"
 	num_repeat = 10
@@ -88,4 +88,3 @@ else:
 	    stmt, setup, number=1, repeat=num_repeat, globals=globals())
 	pp_mean, pp_std = np.mean(pp_run_times), np.std(pp_run_times)
 	print(pp_run_times,pp_mean,pp_std)
-	"""

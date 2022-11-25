@@ -212,29 +212,33 @@ class UNet(UNetBase):
         self.split_size = split_size
 
     def forward(self, x, t):
-        t = t.unsqueeze(-1).type(torch.float)
-        t = self.pos_encoding(t, self.time_dim)
         #t = t.to('cuda:2')
-        splits_t = iter(t.split(self.split_size, dim=0))
-        print("splits_t",splits_t)
-        s_next_t = next(splits_t)
-        print("s_next_t",s_next_t)
         splits = iter(x.split(self.split_size, dim=0))
-        print("splits",splits)
+        #print("splits",splits)
         s_next = next(splits)
-        print("s_next",s_next)
+        #print("s_next",s_next)
         s_next = s_next.to('cuda:2')
-        print("s_next dev",s_next.device)
-        s_prev = self.inc(s_next)
+        #print("s_next dev",s_next.device)
+        s_prev = self.inc(s_next)#1
+
+        splits_t = iter(t.split(self.split_size, dim=0))
+        #print("splits_t",splits_t)
+        s_next_t = next(splits_t).to('cuda:3')#1
+        #print("s_next_t",s_next_t)
+        s_next_t = s_next_t.unsqueeze(-1).type(torch.float)#1
+        s_next_t = self.pos_encoding(s_next_t, self.time_dim)#1
+
         ret = []
 
         for s_next in splits:
-            #s_prev = self.down1(s_prev.to('cuda:3'),t)
+            s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#1
             ret.append(s_prev)
+            s_next_t = next(splits_t).to('cuda:3')#2
+            s_next_t = s_next_t.unsqueeze(-1).type(torch.float)#2
+            s_next_t = self.pos_encoding(s_next_t, self.time_dim)#2
+            s_prev = self.inc(s_next.to('cuda:2'))#2
 
-            s_prev = self.inc(s_next.to('cuda:2'))
-
-        #s_prev = self.down1(s_prev.to('cuda:3'),t)
+        s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#2
         ret.append(s_prev)
 
         return torch.cat(ret)

@@ -249,6 +249,7 @@ class UNet(UNetNoSplit):
     def __init__(self, c_in=3, c_out=3, time_dim=256, device="cuda:0", split_size=20, *args, **kwargs):
         super(UNet, self).__init__(*args, **kwargs)
         self.split_size = split_size
+        self.inc = DoubleConv(c_in, 64, device='cuda:2')#aggiunto
 
     def forward(self, x, t):
         t = t.unsqueeze(-1).type(torch.float)

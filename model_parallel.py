@@ -9,13 +9,13 @@ print("model parallel example")
 class ToyModel(nn.Module):
     def __init__(self):
         super(ToyModel, self).__init__()
-        self.net1 = torch.nn.Linear(10, 10).to('cuda:0')
+        self.net1 = torch.nn.Linear(10, 10).to('cuda:2')
         self.relu = torch.nn.ReLU()
-        self.net2 = torch.nn.Linear(10, 5).to('cuda:1')
+        self.net2 = torch.nn.Linear(10, 5).to('cuda:3')
 
     def forward(self, x):
-        x = self.relu(self.net1(x.to('cuda:0')))
-        return self.net2(x.to('cuda:1'))
+        x = self.relu(self.net1(x.to('cuda:2')))
+        return self.net2(x.to('cuda:3'))
 
 ######################################################################
 # Note that, the above ``ToyModel`` looks very similar to how one would
@@ -26,13 +26,10 @@ class ToyModel(nn.Module):
 # need to make sure that the labels are on the same device as the outputs when
 # calling the loss function.
 #ToyModelSplit
-class ToyModelSplit(nn.Module):
-	def __init__(self, split_size=20):
-		super(ToyModel, self).__init__()
+class ToyModelSplit(ToyModel):
+	def __init__(self, split_size=20, *args, **kwargs):
+		super(ToyModel, self).__init__(*args, **kwargs)
 		self.split_size = split_size
-		self.net1 = torch.nn.Linear(10, 10).to('cuda:2')
-		self.relu = torch.nn.ReLU()
-		self.net2 = torch.nn.Linear(10, 5).to('cuda:3')
 
 	def forward(self, x):
 		splits = iter(x.split(self.split_size, dim=0))

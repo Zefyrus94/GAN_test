@@ -198,7 +198,7 @@ class UNet(nn.Module):
         x3 = self.down2(x2, t)
 
         x3 = x3.to('cuda:2')
-        x3 = self.sa2(x2a)
+        x3 = self.sa2(x3)
 
         x3 = x3.to('cuda:3')
         t = t.to('cuda:3')

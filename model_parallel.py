@@ -76,6 +76,9 @@ if not is_split:
 	optimizer.step()
 else:
 	print("split...")
+	model = ToyModelSplit()
+	train(model)
+	"""
 	stmt = "train(model)"
 	setup = "model = ToyModelSplit()"
 	num_repeat = 10
@@ -83,3 +86,4 @@ else:
 	    stmt, setup, number=1, repeat=num_repeat, globals=globals())
 	pp_mean, pp_std = np.mean(pp_run_times), np.std(pp_run_times)
 	print(pp_run_times,pp_mean,pp_std)
+	"""

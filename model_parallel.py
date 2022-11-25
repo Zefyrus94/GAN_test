@@ -25,16 +25,16 @@ class ToyModel(nn.Module):
 # automatically take care of gradients as if the model is on one GPU. You only
 # need to make sure that the labels are on the same device as the outputs when
 # calling the loss function.
-
+#ToyModelSplit
 class ToyModelSplit(nn.Module):
-    def __init__(self, split_size=20):
-        super(ToyModel, self).__init__()
-        self.split_size = split_size
-        self.net1 = torch.nn.Linear(10, 10).to('cuda:2')
-        self.relu = torch.nn.ReLU()
-        self.net2 = torch.nn.Linear(10, 5).to('cuda:3')
+		def __init__(self, split_size=20):
+		super(ToyModel, self).__init__()
+		self.split_size = split_size
+		self.net1 = torch.nn.Linear(10, 10).to('cuda:2')
+		self.relu = torch.nn.ReLU()
+		self.net2 = torch.nn.Linear(10, 5).to('cuda:3')
 
-    def forward(self, x):
+		def forward(self, x):
 		splits = iter(x.split(self.split_size, dim=0))
 		s_next = next(splits)
 		s_prev = self.relu(self.net1(x.to('cuda:2')))
@@ -62,7 +62,7 @@ def train(model):
 	labels = torch.randn(20, 5).to('cuda:1')
 	loss_fn(outputs, labels).backward()
 	optimizer.step()
-	
+
 is_split = True
 if not is_split:
 	model = ToyModel()

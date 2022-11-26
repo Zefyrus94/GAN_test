@@ -232,6 +232,14 @@ class UNet(UNetBase):
 
         for s_next in splits:
             s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#1
+            ##
+            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_prev = self.sa1(s_prev)
+
+            s_prev = s_prev.to('cuda:3')#2b)1=>3
+            s_next_t = s_next_t.to('cuda:3')#2b)1=>3
+            s_prev = self.down2(s_prev, s_next_t)
+            ##
             ret.append(s_prev)
             s_next_t = next(splits_t).to('cuda:3')#2
             s_next_t = s_next_t.unsqueeze(-1).type(torch.float)#2
@@ -239,6 +247,13 @@ class UNet(UNetBase):
             s_prev = self.inc(s_next.to('cuda:2'))#2
 
         s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#2
-        ret.append(s_prev)
+        ##
+        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_prev = self.sa1(s_prev)
 
+        s_prev = s_prev.to('cuda:3')#2b)1=>3
+        s_next_t = s_next_t.to('cuda:3')#2b)1=>3
+        s_prev = self.down2(s_prev, s_next_t)
+        ##
+        ret.append(s_prev)
         return torch.cat(ret)

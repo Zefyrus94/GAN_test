@@ -239,6 +239,52 @@ class UNet(UNetBase):
             s_prev = s_prev.to('cuda:3')#2b)1=>3
             s_next_t = s_next_t.to('cuda:3')#2b)1=>3
             s_prev = self.down2(s_prev, s_next_t)
+            s_prev = s_prev.to('cuda:2')
+            ##
+            s_prev = self.sa2(s_prev)
+
+            s_prev = s_prev.to('cuda:3')
+            s_next_t = s_next_t.to('cuda:3')
+            s_prev = self.down3(s_prev, s_next_t)
+
+            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_prev = self.sa3(s_prev)
+
+            s_prev = s_prev.to('cuda:3')#2)1=>3
+            s_prev = self.bot1(s_prev)
+
+            s_prev = s_prev.to('cuda:2')
+            s_prev = self.bot2(s_prev)
+
+            s_prev = s_prev.to('cuda:3')
+            s_prev = self.bot3(s_prev)
+
+            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_next_t = s_next_t.to('cuda:2')#3)0=>2
+            s_prev = self.up1(s_prev, s_prev, s_next_t)
+
+            s_prev = s_prev.to('cuda:3')#1)1=>3
+            s_prev = self.sa4(s_prev)
+
+            s_prev = s_prev.to('cuda:2')
+            s_prev = s_prev.to('cuda:2')
+            s_next_t = s_next_t.to('cuda:2')
+            s_prev = self.up2(s_prev s_prev, s_next_t)
+
+            s_prev = s_prev.to('cuda:3')
+            s_prev = self.sa5(s_prev)
+
+            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_next_t = s_next_t.to('cuda:2')#3)0=>2
+            s_prev = self.up3(s_prev s_prev, s_next_t)
+
+            s_prev = s_prev.to('cuda:1')#no:2a)1=>3
+            s_prev = self.sa6(s_prev)
+
+            s_prev = s_prev.to('cuda:2')
+            s_prev = self.outc(s_prev)
             ##
             ret.append(s_prev)
             s_next_t = next(splits_t).to('cuda:3')#2
@@ -255,5 +301,50 @@ class UNet(UNetBase):
         s_next_t = s_next_t.to('cuda:3')#2b)1=>3
         s_prev = self.down2(s_prev, s_next_t)
         ##
+        s_prev = s_prev.to('cuda:2')
+        s_prev = self.sa2(s_prev)
+
+        s_prev = s_prev.to('cuda:3')
+        s_next_t = s_next_t.to('cuda:3')
+        s_prev = self.down3(s_prev, s_next_t)
+
+        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_prev = self.sa3(s_prev)
+
+        s_prev = s_prev.to('cuda:3')#2)1=>3
+        s_prev = self.bot1(s_prev)
+
+        s_prev = s_prev.to('cuda:2')
+        s_prev = self.bot2(s_prev)
+
+        s_prev = s_prev.to('cuda:3')
+        s_prev = self.bot3(s_prev)
+
+        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_next_t = s_next_t.to('cuda:2')#3)0=>2
+        s_prev = self.up1(s_prev, s_prev, s_next_t)
+
+        s_prev = s_prev.to('cuda:3')#1)1=>3
+        s_prev = self.sa4(s_prev)
+
+        s_prev = s_prev.to('cuda:2')
+        s_prev = s_prev.to('cuda:2')
+        s_next_t = s_next_t.to('cuda:2')
+        s_prev = self.up2(s_prev s_prev, s_next_t)
+
+        s_prev = s_prev.to('cuda:3')
+        s_prev = self.sa5(s_prev)
+
+        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_next_t = s_next_t.to('cuda:2')#3)0=>2
+        s_prev = self.up3(s_prev s_prev, s_next_t)
+
+        s_prev = s_prev.to('cuda:1')#no:2a)1=>3
+        s_prev = self.sa6(s_prev)
+
+        s_prev = s_prev.to('cuda:2')
+        s_prev = self.outc(s_prev)
         ret.append(s_prev)
         return torch.cat(ret)

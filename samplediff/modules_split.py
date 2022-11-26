@@ -48,7 +48,7 @@ class DoubleConv(nn.Module):
         )
 
     def forward(self, x):
-        print("DoubleConv dev",self.device)
+        #print("DoubleConv dev",self.device)
         if self.residual:
             return F.gelu(x + self.double_conv(x))
         else:

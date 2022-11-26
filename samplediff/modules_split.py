@@ -217,9 +217,9 @@ class UNet(UNetBase):
         #print("splits",splits)
         s_next = next(splits)
         #print("s_next",s_next)
-        s_next = s_next.to('cuda:2')
+        s_prev = s_next.to('cuda:2')
         #print("s_next dev",s_next.device)
-        s_prev = self.inc(s_next)#1
+        s_prev1 = self.inc(s_prev)#1
 
         splits_t = iter(t.split(self.split_size, dim=0))
         #print("splits_t",splits_t)
@@ -231,54 +231,56 @@ class UNet(UNetBase):
         ret = []
 
         for s_next in splits:
-            s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#1
-            ##
-            s_prev = s_prev.to('cuda:2')#3)0=>2
-            s_prev = self.sa1(s_prev)
-
-            s_prev = s_prev.to('cuda:3')#2b)1=>3
-            s_next_t = s_next_t.to('cuda:3')#2b)1=>3
-            s_prev = self.down2(s_prev, s_next_t)
-            s_prev = s_prev.to('cuda:2')
-            ##
-            s_prev = self.sa2(s_prev)
-
-            s_prev = s_prev.to('cuda:3')
+            s_prev1 = s_prev1.to('cuda:3')
             s_next_t = s_next_t.to('cuda:3')
-            s_prev = self.down3(s_prev, s_next_t)
+            s_prev2 = self.down1(s_prev1, s_next_t)
 
-            s_prev = s_prev.to('cuda:2')#3)0=>2
-            s_prev = self.sa3(s_prev)
+            s_prev2 = s_prev2.to('cuda:2')#3)0=>2
+            s_prev2 = self.sa1(s_prev2)
 
-            s_prev = s_prev.to('cuda:3')#2)1=>3
-            s_prev = self.bot1(s_prev)
+            s_prev2 = s_prev2.to('cuda:3')#2b)1=>3
+            s_next_t = s_next_t.to('cuda:3')#2b)1=>3
+            s_prev3 = self.down2(s_prev2, s_next_t)
 
-            s_prev = s_prev.to('cuda:2')
-            s_prev = self.bot2(s_prev)
+            s_prev3 = s_prev3.to('cuda:2')
+            s_prev3 = self.sa2(s_prev3)
 
-            s_prev = s_prev.to('cuda:3')
-            s_prev = self.bot3(s_prev)
+            s_prev3 = s_prev3.to('cuda:3')
+            s_next_t = s_next_t.to('cuda:3')
+            s_prev4 = self.down3(s_prev3, s_next_t)
 
-            s_prev = s_prev.to('cuda:2')#3)0=>2
-            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_prev4 = s_prev4.to('cuda:2')#3)0=>2
+            s_prev4 = self.sa3(s_prev4)
+
+            s_prev4 = s_prev4.to('cuda:3')#2)1=>3
+            s_prev4 = self.bot1(s_prev4)
+
+            s_prev4 = s_prev4.to('cuda:2')
+            s_prev4 = self.bot2(s_prev4)
+
+            s_prev4 = s_prev4.to('cuda:3')
+            s_prev4 = self.bot3(s_prev4)
+
+            s_prev4 = s_prev4.to('cuda:2')#3)0=>2
+            s_prev3 = s_prev3.to('cuda:2')#3)0=>2
             s_next_t = s_next_t.to('cuda:2')#3)0=>2
-            s_prev = self.up1(s_prev, s_prev, s_next_t)
+            s_prev = self.up1(s_prev4, s_prev3, s_next_t)
 
             s_prev = s_prev.to('cuda:3')#1)1=>3
             s_prev = self.sa4(s_prev)
 
             s_prev = s_prev.to('cuda:2')
-            s_prev = s_prev.to('cuda:2')
+            s_prev2 = s_prev2.to('cuda:2')
             s_next_t = s_next_t.to('cuda:2')
-            s_prev = self.up2(s_prev s_prev, s_next_t)
+            s_prev = self.up2(s_prev, s_prev2, s_next_t)
 
             s_prev = s_prev.to('cuda:3')
             s_prev = self.sa5(s_prev)
 
             s_prev = s_prev.to('cuda:2')#3)0=>2
-            s_prev = s_prev.to('cuda:2')#3)0=>2
+            s_prev1 = s_prev1.to('cuda:2')#3)0=>2
             s_next_t = s_next_t.to('cuda:2')#3)0=>2
-            s_prev = self.up3(s_prev s_prev, s_next_t)
+            s_prev = self.up3(s_prev, s_prev1, s_next_t)
 
             s_prev = s_prev.to('cuda:1')#no:2a)1=>3
             s_prev = self.sa6(s_prev)
@@ -290,61 +292,66 @@ class UNet(UNetBase):
             s_next_t = next(splits_t).to('cuda:3')#2
             s_next_t = s_next_t.unsqueeze(-1).type(torch.float)#2
             s_next_t = self.pos_encoding(s_next_t, self.time_dim,'cuda:3')#2
-            s_prev = self.inc(s_next.to('cuda:2'))#2
+            s_prev = s_next.to('cuda:2')
+            #print("s_next dev",s_next.device)
+            s_prev1 = self.inc(s_prev)#1
 
-        s_prev = self.down1(s_prev.to('cuda:3'),s_next_t)#2
-        ##
-        s_prev = s_prev.to('cuda:2')#3)0=>2
-        s_prev = self.sa1(s_prev)
-
-        s_prev = s_prev.to('cuda:3')#2b)1=>3
-        s_next_t = s_next_t.to('cuda:3')#2b)1=>3
-        s_prev = self.down2(s_prev, s_next_t)
-        ##
-        s_prev = s_prev.to('cuda:2')
-        s_prev = self.sa2(s_prev)
-
-        s_prev = s_prev.to('cuda:3')
+        s_prev1 = s_prev1.to('cuda:3')
         s_next_t = s_next_t.to('cuda:3')
-        s_prev = self.down3(s_prev, s_next_t)
+        s_prev2 = self.down1(s_prev1, s_next_t)
 
-        s_prev = s_prev.to('cuda:2')#3)0=>2
-        s_prev = self.sa3(s_prev)
+        s_prev2 = s_prev2.to('cuda:2')#3)0=>2
+        s_prev2 = self.sa1(s_prev2)
 
-        s_prev = s_prev.to('cuda:3')#2)1=>3
-        s_prev = self.bot1(s_prev)
+        s_prev2 = s_prev2.to('cuda:3')#2b)1=>3
+        s_next_t = s_next_t.to('cuda:3')#2b)1=>3
+        s_prev3 = self.down2(s_prev2, s_next_t)
 
-        s_prev = s_prev.to('cuda:2')
-        s_prev = self.bot2(s_prev)
+        s_prev3 = s_prev3.to('cuda:2')
+        s_prev3 = self.sa2(s_prev3)
 
-        s_prev = s_prev.to('cuda:3')
-        s_prev = self.bot3(s_prev)
+        s_prev3 = s_prev3.to('cuda:3')
+        s_next_t = s_next_t.to('cuda:3')
+        s_prev4 = self.down3(s_prev3, s_next_t)
 
-        s_prev = s_prev.to('cuda:2')#3)0=>2
-        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_prev4 = s_prev4.to('cuda:2')#3)0=>2
+        s_prev4 = self.sa3(s_prev4)
+
+        s_prev4 = s_prev4.to('cuda:3')#2)1=>3
+        s_prev4 = self.bot1(s_prev4)
+
+        s_prev4 = s_prev4.to('cuda:2')
+        s_prev4 = self.bot2(s_prev4)
+
+        s_prev4 = s_prev4.to('cuda:3')
+        s_prev4 = self.bot3(s_prev4)
+
+        s_prev4 = s_prev4.to('cuda:2')#3)0=>2
+        s_prev3 = s_prev3.to('cuda:2')#3)0=>2
         s_next_t = s_next_t.to('cuda:2')#3)0=>2
-        s_prev = self.up1(s_prev, s_prev, s_next_t)
+        s_prev = self.up1(s_prev4, s_prev3, s_next_t)
 
         s_prev = s_prev.to('cuda:3')#1)1=>3
         s_prev = self.sa4(s_prev)
 
         s_prev = s_prev.to('cuda:2')
-        s_prev = s_prev.to('cuda:2')
+        s_prev2 = s_prev2.to('cuda:2')
         s_next_t = s_next_t.to('cuda:2')
-        s_prev = self.up2(s_prev s_prev, s_next_t)
+        s_prev = self.up2(s_prev, s_prev2, s_next_t)
 
         s_prev = s_prev.to('cuda:3')
         s_prev = self.sa5(s_prev)
 
         s_prev = s_prev.to('cuda:2')#3)0=>2
-        s_prev = s_prev.to('cuda:2')#3)0=>2
+        s_prev1 = s_prev1.to('cuda:2')#3)0=>2
         s_next_t = s_next_t.to('cuda:2')#3)0=>2
-        s_prev = self.up3(s_prev s_prev, s_next_t)
+        s_prev = self.up3(s_prev, s_prev1, s_next_t)
 
         s_prev = s_prev.to('cuda:1')#no:2a)1=>3
         s_prev = self.sa6(s_prev)
 
         s_prev = s_prev.to('cuda:2')
         s_prev = self.outc(s_prev)
+        ##
         ret.append(s_prev)
         return torch.cat(ret)

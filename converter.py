@@ -4,7 +4,12 @@ import torchvision.datasets as datasets
 from torchvision import transforms
 
 TRAIN_DATA_PATH = './data'
-train_data = datasets.ImageFolder(root=TRAIN_DATA_PATH, transform=None)
+#TypeError: default_collate: batch must contain tensors, numpy arrays, numbers, dicts or lists;
+#found <class 'PIL.Image.Image'>
+transform = transforms.Compose([
+    transforms.ToTensor()
+    ])
+train_data = datasets.ImageFolder(root=TRAIN_DATA_PATH, transform=transform)
 batchsize = 8
 # Data Loader (Input Pipeline)
 train_loader = torch.utils.data.DataLoader(dataset=train_data,

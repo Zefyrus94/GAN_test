@@ -4,7 +4,8 @@ import torch.optim as optim
 #
 import numpy as np
 import timeit
-#
+#https://pytorch.org/tutorials/intermediate/model_parallel_tutorial.html
+#minimagen: https://github.com/AssemblyAI-Examples/MinImagen
 print("model parallel example")
 class ToyModel(nn.Module):
     def __init__(self):
@@ -34,16 +35,16 @@ class ToyModelSplit(ToyModel):
 	def forward(self, x):
 		splits = iter(x.split(self.split_size, dim=0))
 		s_next = next(splits)
-		s_prev = self.relu(self.net1(x.to('cuda:2')))
+		s_prev = self.relu(self.net1(s_next.to('cuda:2')))
 		ret = []
 
 		for s_next in splits:
 		    # A. s_prev runs on cuda:1
-		    s_prev = self.net2(x.to('cuda:3'))
+		    s_prev = self.net2(s_prev.to('cuda:3'))
 		    ret.append(s_prev)
 
 		    # B. s_next runs on cuda:2, which can run concurrently with A
-		    s_prev = self.relu(self.net1(x.to('cuda:2')))
+		    s_prev = self.relu(self.net1(s_next.to('cuda:2')))
 
 		s_prev = self.net2(s_prev.to('cuda:3'))
 		ret.append(s_prev)

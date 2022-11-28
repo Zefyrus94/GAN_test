@@ -11,6 +11,8 @@ train_loader = torch.utils.data.DataLoader(dataset=train_data,
                                            batch_size=batchsize,
                                            shuffle=True)
 
+for i, (images, labels) in enumerate(train_loader):
+    print(i)
 exit("esco...")
 ###
 

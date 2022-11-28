@@ -2,6 +2,17 @@ import torch
 import torchvision
 import torchvision.datasets as datasets
 from torchvision import transforms
+
+TRAIN_DATA_PATH = './data'
+train_data = datasets.ImageFolder(root=TRAIN_DATA_PATH, transform=None)
+# Data Loader (Input Pipeline)
+train_loader = torch.utils.data.DataLoader(dataset=train_data,
+                                           batch_size=batchsize,
+                                           shuffle=True)
+
+exit("esco...")
+###
+
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Grayscale(3)

@@ -5,6 +5,7 @@ from torchvision import transforms
 
 TRAIN_DATA_PATH = './data'
 train_data = datasets.ImageFolder(root=TRAIN_DATA_PATH, transform=None)
+batchsize = 8
 # Data Loader (Input Pipeline)
 train_loader = torch.utils.data.DataLoader(dataset=train_data,
                                            batch_size=batchsize,

@@ -204,7 +204,6 @@ def get_covariance(features):
 def get_fid(net):
     #image_size = 299
     device = 'cuda'
-
     transform = transforms.Compose([
         transforms.Resize(image_size),
         transforms.CenterCrop(image_size),
@@ -241,27 +240,21 @@ def get_fid(net):
         try:
             for real_example, labels in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
                 #!nvidia-smi
-                print("real...")
                 cur_batch_size = len(real_example)
                 real_samples = real_example
                 real_features = inception_model(real_samples.to(device)).detach().to('cpu') # Move features to CPU
                 real_features_list.append(real_features)
                 #print("len real_example",len(real_example))
                 #print("z_dim",z_dim)
-                print("fake...")
-
                 fake_samples = get_noise(cur_batch_size, z_dim).to(device)
                 if net == 'cgan':
                     one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
                     fake_samples = combine_vectors(fake_samples,one_hot_labels)
                 #print("shape fake_samples",fake_samples.shape)
                 fake_samples = gen(fake_samples)
-                print("generated",fake_samples.shape)
                 if net == 'gan':
                     fake_samples = torch.reshape(fake_samples, (batch_size, image_channels, image_width, image_height))
-                print("preprocess fake....")
                 fake_samples = preprocess(fake_samples)
-                print("shape fake_samples",fake_samples.shape)
                 fake_features = inception_model(fake_samples.to(device)).detach().to('cpu')
                 #print("shape fake_features",fake_features.shape)
                 fake_features_list.append(fake_features)
@@ -272,29 +265,12 @@ def get_fid(net):
         except Exception as e:
             print(e)
             exit("Error in loop")
-
-    #print(fake_features_list)
     fake_features_all = torch.cat(fake_features_list)
     real_features_all = torch.cat(real_features_list)
-
     mu_fake = fake_features_all.mean(0)
     mu_real = real_features_all.mean(0)
     sigma_fake = get_covariance(fake_features_all)
     sigma_real = get_covariance(real_features_all)
-
-    indices = [2, 4, 5]
-    fake_dist = MultivariateNormal(mu_fake[indices], sigma_fake[indices][:, indices])
-    fake_samples = fake_dist.sample((5000,))
-    real_dist = MultivariateNormal(mu_real[indices], sigma_real[indices][:, indices])
-    real_samples = real_dist.sample((5000,))
-
-    df_fake = pd.DataFrame(fake_samples.numpy(), columns=indices)
-    df_real = pd.DataFrame(real_samples.numpy(), columns=indices)
-    df_fake["is_real"] = "no"
-    df_real["is_real"] = "yes"
-    df = pd.concat([df_fake, df_real])
-    sns.pairplot(df, plot_kws={'alpha': 0.1}, hue='is_real')
-
     with torch.no_grad():
         print("La FID per 5000 dati campione è: ",frechet_distance(mu_real, mu_fake, sigma_real, sigma_fake).item())
 
@@ -420,6 +396,7 @@ def main(ctx, outdir, net, fid):
     # You initialize the weights to the normal distribution
     # with mean 0 and standard deviation 0.02
     for ep in range(20):
+        print("epoch",ep)
         hst_path = ckpt_path = f'{outdir}/history/'
         ##loading state...
         checkpoint = torch.load(f"{hst_path}{net}_ep{ep}.pkl")

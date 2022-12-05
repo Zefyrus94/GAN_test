@@ -558,6 +558,7 @@ def main(ctx, outdir, net, fid):
         hst_path = ckpt_path = f'{outdir}/history/'
         ##loading state...
         checkpoint = torch.load(f"{hst_path}{net}_ep{ep}.pkl")
+        print(f"{hst_path}{net}_ep{ep}.pkl",checkpoint)
         gen.load_state_dict(checkpoint['gen_state_dict'])
         gen_opt.load_state_dict(checkpoint['gen_optimizer_state_dict'])
         gen.train()#batch norm e dropout eventuali in training mode

@@ -172,141 +172,6 @@ def show_tensor_images(net, image_tensor, num_images=25, size=(image_channels, i
             'gen_optimizer_state_dict': gen_opt.state_dict(),
             'disc_opt_optimizer_state_dict': disc_opt.state_dict(),
             }, f"{history_path}{net}_ep{epoch_num_history}.pkl")
-def train(net):
-    cur_step = 0
-    save_step = 0
-    mean_generator_loss = 0
-    mean_discriminator_loss = 0
-    for epoch in range(start_epoch,n_epochs):
-        # Dataloader returns the batches
-        for real, labels in tqdm(dataloader):
-            cur_batch_size = len(real)
-            #print("cur_batch_size: ",cur_batch_size)
-            if net == 'gan':
-                real = real.view(cur_batch_size, -1).to(device)
-            else:
-                real = real.to(device)
-            if net == 'cgan':
-                #print("shape labels",labels.shape)
-                #exit()
-                #RuntimeError: one_hot is only applicable to index tensor.
-                one_hot_labels = get_one_hot_labels(labels.to(device), n_classes)
-                image_one_hot_labels = one_hot_labels[:, :, None, None]
-                image_one_hot_labels = image_one_hot_labels.repeat(1, 1, data_shape[1], data_shape[2])
-            prev_fake = None#per differenza con la cgan
-            prev_real = real#per differenza con la cgan
-            if net == 'wgan':
-                for _ in range(crit_repeats):
-                    ## Update discriminator ##
-                    disc_opt.zero_grad()
-                    fake_noise = get_noise(cur_batch_size, z_dim, device=device)
-                    fake = gen(fake_noise)
-                    prev_fake = fake#per differenza con la cgan
-                    disc_fake_pred = disc(fake.detach())
-                    disc_real_pred = disc(real)
-                    #new
-                    epsilon = torch.rand(len(real), 1, 1, 1, device=device, requires_grad=True)
-                    gradient = get_gradient(disc, real, fake.detach(), epsilon)
-                    gp = gradient_penalty(gradient)
-                    disc_loss = get_crit_loss(disc_fake_pred, disc_real_pred, gp, c_lambda)
-                    #<old
-                    #disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
-                    #disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
-                    #disc_loss = (disc_fake_loss + disc_real_loss) / 2
-                    #old>
-                    mean_discriminator_loss += disc_loss.item() / display_step
-                    # Update gradients
-                    disc_loss.backward(retain_graph=True)
-                    # Update optimizer
-                    disc_opt.step()
-            else:
-                ## Update discriminator ##
-                disc_opt.zero_grad()
-                if net == 'gan':
-                    disc_loss,prev_fake = get_disc_loss(gen, disc, criterion, real, cur_batch_size, z_dim, device)
-                    prev_fake = torch.reshape(prev_fake, (cur_batch_size, image_channels, image_width, image_height))
-                    #print("gan prev_fake shape",prev_fake.shape)
-                    #exit()
-                else:
-                    fake_noise = get_noise(cur_batch_size, z_dim, device=device)
-                    if net == 'cgan':
-                        fake_noise = combine_vectors(fake_noise,one_hot_labels)
-                    fake = gen(fake_noise)
-                    #print("fake shape",fake.shape)
-                    prev_fake = fake#per differenza con la cgan
-                    if net == 'cgan':
-                        fake_image_and_labels = combine_vectors(fake,image_one_hot_labels)
-                        #print("fake1 shape",fake.shape)
-                        real_image_and_labels = combine_vectors(real,image_one_hot_labels)
-                        disc_fake_pred = disc(fake_image_and_labels)
-                        disc_real_pred = disc(real_image_and_labels)
-                    else:
-                        disc_fake_pred = disc(fake.detach())
-                        disc_real_pred = disc(real)
-                    disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
-                    #print("rshape",real.shape)
-                    disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
-                    disc_loss = (disc_fake_loss + disc_real_loss) / 2
-                # Keep track of the average discriminator loss    
-                mean_discriminator_loss += disc_loss.item() / display_step    
-                # Update gradients
-                disc_loss.backward(retain_graph=True)
-                # Update optimizer
-                disc_opt.step()
-
-            ## Update generator ##
-            gen_opt.zero_grad()
-            if net == 'gan':
-                gen_loss = gan_get_gen_loss(gen, disc, criterion, cur_batch_size, z_dim, device)
-                gen_loss.backward(retain_graph=True)
-            else:
-                if net == 'cgan':
-                    fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
-                    disc_fake_pred = disc(fake_image_and_labels)
-                    #fake_2 = combine_vectors(fake, image_one_hot_labels)#old
-                    #fake_noise_2 = combine_vectors(fake_noise_2,one_hot_labels)#new
-                    #fake_2 = gen(fake_noise_2)#new
-                    #fake_2 = combine_vectors(fake_2, image_one_hot_labels)#new
-                    #print("fake_2 shape",fake.shape)
-                    #exit()
-                else:
-                    fake_noise_2 = get_noise(cur_batch_size, z_dim, device=device)#new per cgan
-                    fake_2 = gen(fake_noise_2)
-                    disc_fake_pred = disc(fake_2)
-                if net == 'wgan':
-                    gen_loss = get_gen_loss(disc_fake_pred)
-                else:
-                    gen_loss = criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
-                gen_loss.backward()
-            gen_opt.step()
-            
-            # Keep track of the average generator loss
-            mean_generator_loss += gen_loss.item() / display_step
-            #print("cur_step",cur_step,"display_step",display_step)
-            ## Visualization code ##
-            if cur_step % display_step == 0 and cur_step > 0:
-                print(f"Epoch {epoch} Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
-                #show_tensor_images(fake,name=epoch,gen=gen,disc=disc)
-                print("plot ",prev_fake.shape)
-                show_tensor_images(net, prev_fake, epoch_num=epoch, gen=gen, disc=disc, gen_opt=gen_opt, disc_opt=disc_opt)
-                save_step += 1
-                show_tensor_images(net, prev_real)
-                mean_generator_loss = 0
-                mean_discriminator_loss = 0
-            cur_step += 1   
-    print("Addestramento concluso.")
-
-def generate_gif():
-    #alla fine dell'addestramento genero una gif che mostra visivamente i progressi della rete
-    filenames = [f for f in listdir(image_path) if isfile(join(image_path, f))]
-    filenames = sorted(filenames,key=lambda x: int(x.split('.')[0]))
-    with imageio.get_writer(f'{gif_path}movie_{n_epochs}.gif', mode='I', duration = 0.5) as writer:
-        for filename in filenames:
-            file_path = f"{image_path}{filename}"
-            #print("file_path",file_path)
-            image = imageio.imread(file_path)
-            #print(image)
-            writer.append_data(image)
 
 def preprocess(img):
     #img.unsqueeze(0)
@@ -558,7 +423,9 @@ def main(ctx, outdir, net, fid):
         hst_path = ckpt_path = f'{outdir}/history/'
         ##loading state...
         checkpoint = torch.load(f"{hst_path}{net}_ep{ep}.pkl")
-        print(f"{hst_path}{net}_ep{ep}.pkl",checkpoint)
+        #print(f"{hst_path}{net}_ep{ep}.pkl",checkpoint)
+        for key, value in checkpoint.items() :
+            print (key)
         gen.load_state_dict(checkpoint['gen_state_dict'])
         gen_opt.load_state_dict(checkpoint['gen_optimizer_state_dict'])
         gen.train()#batch norm e dropout eventuali in training mode

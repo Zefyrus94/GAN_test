@@ -423,14 +423,11 @@ def main(ctx, outdir, net, fid):
         hst_path = ckpt_path = f'{outdir}/history/'
         ##loading state...
         checkpoint = torch.load(f"{hst_path}{net}_ep{ep}.pkl")
-        #print(f"{hst_path}{net}_ep{ep}.pkl",checkpoint)
-        for key, value in checkpoint.items() :
-            print (key)
         gen.load_state_dict(checkpoint['gen_state_dict'])
         gen_opt.load_state_dict(checkpoint['gen_optimizer_state_dict'])
         gen.train()#batch norm e dropout eventuali in training mode
         disc.load_state_dict(checkpoint['disc_state_dict'])
-        disc_opt.load_state_dict(checkpoint['disc_optimizer_state_dict'])
+        disc_opt.load_state_dict(checkpoint['disc_opt_optimizer_state_dict'])
         disc.train()#batch norm e dropout eventuali in training mode
         start_epoch = checkpoint['epoch']
         print("start epoch",start_epoch,"type",type(start_epoch))

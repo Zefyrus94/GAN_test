@@ -439,7 +439,7 @@ def get_fid(net):
 # General options.
 @click.option('--outdir', help='Dove salvare i risultati', required=True, metavar='DIR')
 @click.option('--net', help='La tipologia di GAN da addestrare', type=click.Choice(['gan','dcgan', 'wgan', 'cgan','cyclegan', 'progan', 'sga2']))
-@click.option('--fid', help='La tipologia di GAN da addestrare', type=bool, metavar='BOOL')
+@click.option('--fid', help='La metrica utilizzata', type=bool, metavar='BOOL')
 def main(ctx, outdir, net, fid):
     global gen, disc, gen_opt, disc_opt, criterion
     global image_path, ckpt_path, history_path, gif_path
